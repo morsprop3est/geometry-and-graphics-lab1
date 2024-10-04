@@ -11,16 +11,35 @@ const Shape = ({ shapeCoordinates, canvasWidth, canvasHeight }) => {
         const height = canvasHeight;
 
         ctx.clearRect(0, 0, width, height);
-
         ctx.strokeStyle = 'blue';
         ctx.lineWidth = 2;
         ctx.beginPath();
 
-        ctx.moveTo(shapeCoordinates[0].x, height - shapeCoordinates[0].y);
+        const centerX = width / 2;
+        const centerY = height / 2;
 
         shapeCoordinates.forEach((coord, index) => {
-            const nextCoord = shapeCoordinates[(index + 1) % shapeCoordinates.length];
-            ctx.lineTo(nextCoord.x, height - nextCoord.y);
+            let adjustedX, adjustedY;
+
+            if (coord.center && coord.radius !== undefined) {
+                adjustedX = coord.center.x + centerX;
+                adjustedY = centerY - coord.center.y;
+
+                const startAngle = coord.startAngle;
+                const endAngle = coord.endAngle;
+
+                const clockwise = startAngle < endAngle;
+
+                ctx.arc(adjustedX, adjustedY, coord.radius, coord.startAngle, coord.endAngle, coord.counterclockwise);
+            } else if (coord.x !== undefined && coord.y !== undefined) {
+                adjustedX = coord.x + centerX;
+                adjustedY = centerY - coord.y;
+                if (index === 0) {
+                    ctx.moveTo(adjustedX, adjustedY);
+                } else {
+                    ctx.lineTo(adjustedX, adjustedY);
+                }
+            }
         });
 
         ctx.closePath();

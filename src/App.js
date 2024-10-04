@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-
 import Graph from './components/Graph/Graph';
 import Shape from './components/Graph/Shape';
 import SideMenu from './components/SideMenu/SideMenu';
-
 import styles from './App.scss';
 
 const App = () => {
@@ -11,17 +9,26 @@ const App = () => {
     const defaultCanvasHeight = 600;
     const defaultGridSize = 20;
 
-    const defaultCoordinates = [
-        { x: 200, y: 200 },
-        { x: 400, y: 200 },
-        { x: 400, y: 400 },
-        { x: 200, y: 400 }
-    ];
-
-    const [shapeCoordinates, setShapeCoordinates] = useState(defaultCoordinates);
     const [canvasWidth, setCanvasWidth] = useState(defaultCanvasWidth);
     const [canvasHeight, setCanvasHeight] = useState(defaultCanvasHeight);
     const [gridSize, setGridSize] = useState(defaultGridSize);
+
+    const degreesToRadians = (degrees) => (degrees * Math.PI) / 180;
+    const centerX = canvasWidth / 2;
+    const centerY = canvasHeight / 2;
+
+    const defaultCoordinates = [
+        { radius: 20, center: { x: -100, y: 100 }, startAngle: degreesToRadians(450), endAngle: degreesToRadians(360), counterclockwise: true },
+        { radius: 20, center: { x: 0, y: 100 }, startAngle: degreesToRadians(180), endAngle: degreesToRadians(0), counterclockwise: false },
+        { radius: 20, center: { x: 100, y: 100 }, startAngle: degreesToRadians(180), endAngle: degreesToRadians(90), counterclockwise: true },
+        { radius: 20, center: { x: 100, y: -100 }, startAngle: degreesToRadians(270), endAngle: degreesToRadians(180), counterclockwise: true },
+        { radius: 20, center: { x: 0, y: -100 }, startAngle: degreesToRadians(360), endAngle: degreesToRadians(180), counterclockwise: false },
+        { radius: 20, center: { x: -100, y: -100 }, startAngle: degreesToRadians(360), endAngle: degreesToRadians(270), counterclockwise: true },
+    ];
+
+
+
+    const [shapeCoordinates, setShapeCoordinates] = useState(defaultCoordinates);
 
     const resetShape = () => {
         setShapeCoordinates(defaultCoordinates);

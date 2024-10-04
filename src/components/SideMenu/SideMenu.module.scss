@@ -23,20 +23,35 @@
     .controlItem {
       display: flex;
       flex-direction: row;
-      justify-content: space-between;
+      justify-content: left;
       align-items: center;
+      gap: 5px;
       width: 100%;
 
       label {
         display: block;
         font-size: 0.9em;
+        width: 5rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
-      input {
+      input[type="number"] {
         width: 3rem;
         padding: 5px;
         font-size: 0.9rem;
         border: 1px solid #222222;
+      }
+
+      input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+
+        &:checked {
+          accent-color: #000;
+        }
       }
     }
 
