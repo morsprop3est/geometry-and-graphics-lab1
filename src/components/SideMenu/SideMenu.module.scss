@@ -43,16 +43,6 @@
         font-size: 0.9rem;
         border: 1px solid #222222;
       }
-
-      input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-
-        &:checked {
-          accent-color: #000;
-        }
-      }
     }
 
     .resetButton {
@@ -67,7 +57,7 @@
       margin-top: 10px;
     }
 
-    .gridWrapper, .shapeWrapper {
+    .gridWrapper, .shapeWrapper, .euclideanWrapper{
       display: flex;
       flex-direction: column;
       width: 100%;

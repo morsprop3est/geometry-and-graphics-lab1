@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import styles from './Graph.module.scss';
 
-const Graph = ({ canvasWidth, canvasHeight, gridSize }) => {
+const Graph = ({ canvasWidth, canvasHeight, gridSize, centerPoint }) => {
     const canvasRef = useRef(null);
 
     useEffect(() => {
@@ -31,29 +31,25 @@ const Graph = ({ canvasWidth, canvasHeight, gridSize }) => {
 
         ctx.strokeStyle = 'red';
         ctx.lineWidth = 2;
-
-
         ctx.beginPath();
         ctx.moveTo(0, height / 2);
         ctx.lineTo(width, height / 2);
         ctx.stroke();
 
         ctx.strokeStyle = '#008000';
-
-
         ctx.beginPath();
         ctx.moveTo(width / 2, 0);
         ctx.lineTo(width / 2, height);
         ctx.stroke();
 
-        const pointX = width / 2;
-        const pointY = height / 2;
+        const pointX = centerPoint.x + width / 2;
+        const pointY = centerPoint.y + height / 2;
 
         ctx.fillStyle = 'black';
         ctx.beginPath();
         ctx.arc(pointX, pointY, 3, 0, Math.PI * 2);
         ctx.fill();
-    }, [canvasWidth, canvasHeight, gridSize]);
+    }, [canvasWidth, canvasHeight, gridSize, centerPoint]);
 
     return (
         <canvas
