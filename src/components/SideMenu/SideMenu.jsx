@@ -1,52 +1,39 @@
 import React, { useState } from 'react';
+import { CloseSquare, Setting } from 'iconic-react';
+import { motion, AnimatePresence } from 'framer-motion'; // Import necessary components
 import styles from './SideMenu.module.scss';
 
 const SideMenu = ({
-                      shapeCoordinates,
-                      setShapeCoordinates,
-                      onResetShape,
-                      onResetGrid,
-                      onRotate,
-                      onTranslate,
-                      onScale,
-                      canvasWidth,
-                      canvasHeight,
-                      gridSize,
-                      setCanvasWidth,
-                      setCanvasHeight,
-                      setGridSize,
+                      shapeElements,
+                      setShapeElements,
+                      rotationAngle,
+                      setRotationAngle,
+                      scaleX,
+                      scaleY,
+                      setScaleX,
+                      setScaleY,
                       pivotX,
                       pivotY,
                       setPivotX,
                       setPivotY,
+                      onScale,
+                      onRotate,
+                      updateShapeCoordinates,
+                      gridSize,
+                      setGridSize,
+                      gridDensity,
+                      setGridDensity,
+                      gridColor,
+                      setGridColor,
+                      canvasSize,
+                      setCanvasSize,
                   }) => {
-    const [rotationAngle, setRotationAngle] = useState(0);
-    const [translateX, setTranslateX] = useState(0);
-    const [translateY, setTranslateY] = useState(0);
-    const [scaleX, setScaleX] = useState(1);
-    const [scaleY, setScaleY] = useState(1);
-
-    const radiansToDegrees = (radians) => (radians * 180) / Math.PI;
-    const degreesToRadians = (degrees) => (degrees * Math.PI) / 180;
+    const [isOpen, setIsOpen] = useState(false);
 
     const handleRotationChange = (e) => {
         const newAngle = Number(e.target.value);
         setRotationAngle(newAngle);
-        onRotate(newAngle);
-    };
-
-
-    const handleTranslationChange = (e) => {
-        const { name, value } = e.target;
-        const numericValue = Number(value);
-
-        if (name === 'translateX') {
-            setTranslateX(numericValue);
-            onTranslate(numericValue, translateY);
-        } else if (name === 'translateY') {
-            setTranslateY(numericValue);
-            onTranslate(translateX, numericValue);
-        }
+        onRotate();
     };
 
     const handleScalingChange = (e) => {
@@ -54,214 +41,208 @@ const SideMenu = ({
         const numericValue = Number(value);
         if (name === 'scaleX') {
             setScaleX(numericValue);
-            onScale(numericValue, scaleY);
-        }
-        if (name === 'scaleY') {
+        } else if (name === 'scaleY') {
             setScaleY(numericValue);
-            onScale(scaleX, numericValue);
         }
+        onScale();
     };
 
-    const handleCoordinateChange = (index, e) => {
-        const { name, value } = e.target;
-        const updatedCoordinates = [...shapeCoordinates];
-        const numericValue = Number(value);
-
-        if (name.includes('center')) {
-            const centerKey = name.split('.')[1];
-            updatedCoordinates[index] = {
-                ...updatedCoordinates[index],
-                center: { ...updatedCoordinates[index].center, [centerKey]: numericValue }
-            };
-        } else if (name === 'startAngle' || name === 'endAngle') {
-            updatedCoordinates[index] = { ...updatedCoordinates[index], [name]: degreesToRadians(numericValue) };
-        } else {
-            updatedCoordinates[index] = { ...updatedCoordinates[index], [name]: numericValue };
-        }
-
-        setShapeCoordinates(updatedCoordinates);
+    const handleElementChange = (index, field, value) => {
+        const updatedElements = shapeElements.map((element, i) =>
+            i === index ? { ...element, [field]: Number(value) } : element
+        );
+        setShapeElements(updatedElements);
+        updateShapeCoordinates();
     };
 
-    const handleCanvasWidthChange = (e) => {
-        setCanvasWidth(Number(e.target.value));
-    };
-
-    const handleCanvasHeightChange = (e) => {
-        setCanvasHeight(Number(e.target.value));
-    };
-
-    const handleGridSizeChange = (e) => {
-        setGridSize(Number(e.target.value));
+    const menuVariants = {
+        open: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.3 },
+        },
+        closed: {
+            opacity: 0,
+            y: -20,
+            transition: { duration: 0.3 },
+        },
     };
 
     return (
         <div className={styles.sideMenu}>
             <div className={styles.sideMenuWrapper}>
-                <div className={styles.gridWrapper}>
-                    <h2>Grid Settings</h2>
-                    <div className={styles.controlItem}>
-                        <label>Width:</label>
-                        <input
-                            type="number"
-                            value={canvasWidth.toFixed(0)}
-                            onChange={handleCanvasWidthChange}
-                        />
-                    </div>
-                    <div className={styles.controlItem}>
-                        <label>Height:</label>
-                        <input
-                            type="number"
-                            value={canvasHeight.toFixed(0)}
-                            onChange={handleCanvasHeightChange}
-                        />
-                    </div>
-                    <div className={styles.controlItem}>
-                        <label>Grid Size:</label>
-                        <input
-                            type="number"
-                            value={gridSize.toFixed(0)}
-                            onChange={handleGridSizeChange}
-                        />
-                    </div>
-                    <button className={styles.resetButton} onClick={onResetGrid}>
-                        Reset Grid Settings
+                <div className={styles.buttonWrapper}>
+                    <button
+                        className={styles.toggleButton}
+                        onClick={() => setIsOpen(prev => !prev)}
+                    >
+                        {isOpen ? <CloseSquare size="24" color="black"/> : <Setting size="24" color="black"/>}
                     </button>
                 </div>
-                <div className={styles.shapeWrapper}>
-                    <h2>Shape Settings</h2>
-                    {shapeCoordinates.map((coord, index) => (
-                        <div key={index} className={styles.controlItem}>
-                            {coord.center ? (
-                                <>
-                                    <label>Center X{index + 1}:</label>
+                <AnimatePresence>
+                    {isOpen && (
+                        <motion.div
+                            initial="closed"
+                            animate="open"
+                            exit="closed"
+                            variants={menuVariants}
+                        >
+                            <h2>Settings</h2>
+                            <div className={styles.euclideanWrapper}>
+                                <h3>Euclidean Transformations</h3>
+                                <div className={styles.controlItem}>
+                                    <label>Rotate:</label>
                                     <input
                                         type="number"
-                                        name="center.x"
-                                        value={coord.center.x.toFixed(0)} // Обмежуємо десяткові знаки до 0
-                                        onChange={(e) => handleCoordinateChange(index, e)}
-                                        step="1"
+                                        value={rotationAngle}
+                                        onChange={handleRotationChange}
                                     />
-                                    <label>Center Y{index + 1}:</label>
+                                </div>
+                                <div className={styles.controlItem}>
+                                    <label>Scale X:</label>
                                     <input
                                         type="number"
-                                        name="center.y"
-                                        value={coord.center.y.toFixed(0)} // Обмежуємо десяткові знаки до 0
-                                        onChange={(e) => handleCoordinateChange(index, e)}
-                                        step="1"
+                                        name="scaleX"
+                                        value={scaleX}
+                                        onChange={handleScalingChange}
+                                        step="0.1"
                                     />
-                                    <label>Radius:</label>
+                                    <label>Scale Y:</label>
                                     <input
                                         type="number"
-                                        name="radius"
-                                        value={coord.radius.toFixed(0)} // Обмежуємо десяткові знаки до 0
-                                        onChange={(e) => handleCoordinateChange(index, e)}
-                                        step="1"
+                                        name="scaleY"
+                                        value={scaleY}
+                                        onChange={handleScalingChange}
+                                        step="0.1"
                                     />
-                                    <label>Start Ang:</label>
+                                </div>
+                                <div className={styles.controlItem}>
+                                    <label>Pivot X:</label>
                                     <input
                                         type="number"
-                                        name="startAngle"
-                                        value={radiansToDegrees(coord.startAngle).toFixed(0)} // Обмежуємо десяткові знаки до 0
-                                        onChange={(e) => handleCoordinateChange(index, e)}
-                                        step="10"
+                                        value={pivotX}
+                                        onChange={(e) => setPivotX(Number(e.target.value))}
                                     />
-                                    <label>End Ang:</label>
+                                    <label>Pivot Y:</label>
                                     <input
                                         type="number"
-                                        name="endAngle"
-                                        value={radiansToDegrees(coord.endAngle).toFixed(0)} // Обмежуємо десяткові знаки до 0
-                                        onChange={(e) => handleCoordinateChange(index, e)}
-                                        step="10"
+                                        value={pivotY}
+                                        onChange={(e) => setPivotY(Number(e.target.value))}
                                     />
-                                </>
-                            ) : (
-                                <>
-                                    <label>Point X{index + 1}:</label>
-                                    <input
-                                        type="number"
-                                        name="x"
-                                        value={coord.x.toFixed(0)} // Обмежуємо десяткові знаки до 0
-                                        onChange={(e) => handleCoordinateChange(index, e)}
-                                        step="1"
-                                    />
-                                    <label>Point Y{index + 1}:</label>
-                                    <input
-                                        type="number"
-                                        name="y"
-                                        value={coord.y.toFixed(0)} // Обмежуємо десяткові знаки до 0
-                                        onChange={(e) => handleCoordinateChange(index, e)}
-                                        step="1"
-                                    />
-                                </>
-                            )}
-                        </div>
-                    ))}
-                    <button className={styles.resetButton} onClick={onResetShape}>
-                        Reset Shape Settings
-                    </button>
-                </div>
-                <div className={styles.euclideanWrapper}>
+                                </div>
+                            </div>
 
-                    <h2>Euclidean Transformations</h2>
-                    <div className={styles.controlItem}>
-                        <label>Rotate:</label>
-                        <input
-                            type="number"
-                            value={rotationAngle.toFixed(0)}
-                            onChange={handleRotationChange}
-                        />
-                    </div>
+                            <div className={styles.gridWrapper}>
+                                <h3>Grid Settings</h3>
+                                <div className={styles.controlItem}>
+                                    <label>Grid Size:</label>
+                                    <input
+                                        type="number"
+                                        value={gridSize}
+                                        onChange={(e) => setGridSize(Number(e.target.value))}
+                                    />
+                                </div>
+                                <div className={styles.controlItem}>
+                                    <label>Grid Density:</label>
+                                    <input
+                                        type="number"
+                                        value={gridDensity}
+                                        onChange={(e) => setGridDensity(Number(e.target.value))}
+                                        step="0.1"
+                                    />
+                                </div>
+                                <div className={styles.controlItem}>
+                                    <label>Grid Color:</label>
+                                    <input
+                                        type="color"
+                                        value={gridColor}
+                                        onChange={(e) => setGridColor(e.target.value)}
+                                    />
+                                </div>
+                                <div className={styles.controlItem}>
+                                    <label>Canvas Size:</label>
+                                    <input
+                                        type="number"
+                                        value={canvasSize}
+                                        onChange={(e) => setCanvasSize(Number(e.target.value))}
+                                    />
+                                </div>
+                            </div>
 
-                    <div className={styles.controlItem}>
-                        <label>Move X:</label>
-                        <input
-                            type="number"
-                            name="translateX"
-                            value={translateX.toFixed(0)}
-                            onChange={handleTranslationChange}
-                        />
-                        <label>Move Y:</label>
-                        <input
-                            type="number"
-                            name="translateY"
-                            value={translateY.toFixed(0)}
-                            onChange={handleTranslationChange}
-                        />
-                    </div>
+                            <div className={styles.shapeWrapper}>
+                                <h3>Shape Coordinates</h3>
+                                {shapeElements.map((element, index) => (
+                                    <div key={index} className={styles.controlItem}>
+                                        {element.type === 'point' ? (
+                                            <>
+                                                <label>X{index + 1}:</label>
+                                                <input
+                                                    type="number"
+                                                    value={element.x}
+                                                    onChange={(e) =>
+                                                        handleElementChange(index, 'x', e.target.value)
+                                                    }
+                                                />
+                                                <label>Y{index + 1}:</label>
+                                                <input
+                                                    type="number"
+                                                    value={element.y}
+                                                    onChange={(e) =>
+                                                        handleElementChange(index, 'y', e.target.value)
+                                                    }
+                                                />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <label>X{index + 1}:</label>
+                                                <input
+                                                    type="number"
+                                                    value={element.centerX}
+                                                    onChange={(e) =>
+                                                        handleElementChange(index, 'centerX', e.target.value)
+                                                    }
+                                                />
+                                                <label>Y{index + 1}:</label>
+                                                <input
+                                                    type="number"
+                                                    value={element.centerY}
+                                                    onChange={(e) =>
+                                                        handleElementChange(index, 'centerY', e.target.value)
+                                                    }
+                                                />
+                                                <label>Radius:</label>
+                                                <input
+                                                    type="number"
+                                                    value={element.radius}
+                                                    onChange={(e) =>
+                                                        handleElementChange(index, 'radius', e.target.value)
+                                                    }
+                                                />
+                                                <label>Start Ang:</label>
+                                                <input
+                                                    type="number"
+                                                    value={element.startAngle}
+                                                    onChange={(e) =>
+                                                        handleElementChange(index, 'startAngle', e.target.value)
+                                                    }
+                                                />
+                                                <label>End Ang:</label>
+                                                <input
+                                                    type="number"
+                                                    value={element.endAngle}
+                                                    onChange={(e) =>
+                                                        handleElementChange(index, 'endAngle', e.target.value)
+                                                    }
+                                                />
+                                            </>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
 
-                    <div className={styles.controlItem}>
-                        <label>Scale X:</label>
-                        <input
-                            type="number"
-                            name="scaleX"
-                            value={scaleX.toFixed(1)}
-                            onChange={handleScalingChange}
-                            step = "0.1"
-                        />
-                        <label>Scale Y:</label>
-                        <input
-                            type="number"
-                            name="scaleY"
-                            value={scaleY.toFixed(1)}
-                            onChange={handleScalingChange}
-                            step = "0.1"
-                        />
-                    </div>
-                    <div className={styles.controlItem}>
-                        <label>Pivot X:</label>
-                        <input
-                            type="number"
-                            value={pivotX}
-                            onChange={(e) => setPivotX(Number(e.target.value))}
-                        />
-                        <label>Pivot Y:</label>
-                        <input
-                            type="number"
-                            value={pivotY}
-                            onChange={(e) => setPivotY(Number(e.target.value))}
-                        />
-                    </div>
-                </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );

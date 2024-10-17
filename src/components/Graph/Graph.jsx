@@ -1,63 +1,98 @@
 import React, { useEffect, useRef } from 'react';
 import styles from './Graph.module.scss';
 
-const Graph = ({ canvasWidth, canvasHeight, gridSize, centerPoint }) => {
+const Graph = ({ pivot, gridSize, gridDensity, gridColor, canvasSize }) => {
     const canvasRef = useRef(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
-        const width = canvasWidth;
-        const height = canvasHeight;
 
-        ctx.clearRect(0, 0, width, height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-        ctx.lineWidth = 0.5;
+        const step = gridSize / gridDensity;
 
-        for (let y = 0; y <= height; y += gridSize) {
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
+
+        for (let x = -canvas.width / 2; x <= canvas.width / 2; x += step) {
             ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(width, y);
+            ctx.moveTo(canvas.width / 2 + x, 0);
+            ctx.lineTo(canvas.width / 2 + x, canvas.height);
             ctx.stroke();
         }
 
-        for (let x = 0; x <= width; x += gridSize) {
+        for (let y = -canvas.height / 2; y <= canvas.height / 2; y += step) {
             ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, height);
+            ctx.moveTo(0, canvas.height / 2 - y);
+            ctx.lineTo(canvas.width, canvas.height / 2 - y);
             ctx.stroke();
         }
+
+        ctx.lineWidth = 1;
 
         ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(0, height / 2);
-        ctx.lineTo(width, height / 2);
+        ctx.moveTo(0, canvas.height / 2);
+        ctx.lineTo(canvas.width, canvas.height / 2);
         ctx.stroke();
 
-        ctx.strokeStyle = '#008000';
+        ctx.strokeStyle = 'green';
         ctx.beginPath();
-        ctx.moveTo(width / 2, 0);
-        ctx.lineTo(width / 2, height);
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
         ctx.stroke();
 
-        const pointX = centerPoint.x + width / 2;
-        const pointY = centerPoint.y + height / 2;
+        const arrowLength = 10;
+        const arrowWidth = 5;
 
+        ctx.beginPath();
+        ctx.moveTo(canvas.width, canvas.height / 2);
+        ctx.lineTo(canvas.width - arrowLength, (canvas.height / 2) - arrowWidth);
+        ctx.lineTo(canvas.width - arrowLength, (canvas.height / 2) + arrowWidth);
+        ctx.closePath();
         ctx.fillStyle = 'black';
-        ctx.beginPath();
-        ctx.arc(pointX, pointY, 3, 0, Math.PI * 2);
         ctx.fill();
-    }, [canvasWidth, canvasHeight, gridSize, centerPoint]);
+
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo((canvas.width / 2) - arrowWidth, arrowLength);
+        ctx.lineTo((canvas.width / 2) + arrowWidth, arrowLength);
+        ctx.closePath();
+        ctx.fillStyle = 'black';
+        ctx.fill();
+
+        ctx.strokeStyle = 'red';
+        for (let x = -canvas.width / 2; x <= canvas.width / 2; x += step) {
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2 + x, (canvas.height / 2) - 5);
+            ctx.lineTo(canvas.width / 2 + x, (canvas.height / 2) + 5);
+            ctx.stroke();
+        }
+
+        ctx.strokeStyle = 'green';
+        for (let y = -canvas.height / 2; y <= canvas.height / 2; y += step) {
+            ctx.beginPath();
+            ctx.moveTo((canvas.width / 2) - 5, canvas.height / 2 - y);
+            ctx.lineTo((canvas.width / 2) + 5, canvas.height / 2 - y);
+            ctx.stroke();
+        }
+
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, 3, 0, Math.PI * 2);
+        ctx.fillStyle = 'black';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2 + pivot.x, canvas.height / 2 - pivot.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = 'blue';
+        ctx.fill();
+
+    }, [pivot, gridSize, gridDensity, gridColor, canvasSize]);
+
 
     return (
-        <canvas
-            ref={canvasRef}
-            width={canvasWidth}
-            height={canvasHeight}
-            className={styles.canvas}
-        ></canvas>
+        <canvas ref={canvasRef} width={canvasSize} height={canvasSize} className={styles.canvas} />
     );
 };
 
