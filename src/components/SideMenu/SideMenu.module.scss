@@ -9,6 +9,21 @@
   letter-spacing: 1px;
   max-height: calc(100vh - 25px);
   overflow-y: auto;
+  border-radius: 5px;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    color: black;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: black;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+  }
 
   .sideMenuWrapper {
     display: flex;
@@ -27,12 +42,20 @@
         background-color: white;
         border: none;
         cursor: pointer;
+        padding: 10px 15px;
+        border-radius: 5px;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.05);
+        }
       }
     }
 
     h2 {
       font-size: 1.5rem;
       margin: 0;
+      font-weight: bold;
     }
 
     .controlItem {
@@ -43,6 +66,18 @@
       gap: 5px;
       width: 100%;
 
+      button {
+        background-color: black;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        padding: 5px;
+        border: none;
+        border-radius: 5px;
+      }
+
       label {
         display: block;
         font-size: 0.9em;
@@ -52,25 +87,141 @@
         text-overflow: ellipsis;
       }
 
-      input[type="number"] {
+      input[type="number"],
+      input[type="color"] {
         width: 3rem;
         padding: 5px;
         font-size: 0.9rem;
         border: 1px solid #222222;
+        border-radius: 4px;
+        transition: border-color 0.2s;
+
+        &:focus {
+          border-color: #007bff;
+          outline: none;
+        }
+      }
+
+      input[type="color"] {
+        width: 2rem;
       }
     }
 
-
-    .gridWrapper, .shapeWrapper, .euclideanWrapper {
+    .gridWrapper,
+    .shapeWrapper,
+    .euclideanWrapper{
       display: flex;
       flex-direction: column;
       width: 100%;
       gap: 15px;
+      margin-top: 25px;
+
+      .resetButton {
+        background-color: black;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-size: 1rem;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+      }
+
 
       h3 {
         font-size: 1em;
         margin: 0;
+        font-weight: bold;
+      }
+
+      .controlItem {
+        display: flex;
+        flex-direction: row;
+        justify-content: left;
+        align-items: center;
+        gap: 5px;
+        width: 100%;
+
+        label {
+          display: block;
+          font-size: 0.9em;
+          width: 5rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        input[type="number"],
+        input[type="color"] {
+          width: 3rem;
+          padding: 5px;
+          font-size: 0.9rem;
+          border: 1px solid #222222;
+          border-radius: 4px;
+          transition: border-color 0.2s;
+
+          &:focus {
+            border-color: #007bff;
+            outline: none;
+          }
+        }
+
+        input[type="color"] {
+          width: 2rem;
+        }
       }
     }
+
+    .affineTransformWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+
+      .resetButton {
+        background-color: black;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-size: 1rem;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+      }
+
+      h3 {
+        font-size: 1em;
+        margin: 0;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      .matrixGrid {
+        display: grid;
+        grid-template-columns: repeat(3, auto);
+        gap: 10px;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+      }
+
+      .matrixInput {
+        width: 3rem;
+        padding: 5px;
+        font-size: 0.9rem;
+        border: 1px solid #222222;
+        border-radius: 4px;
+        transition: border-color 0.2s;
+
+        &:focus {
+          border-color: #007bff;
+          outline: none;
+        }
+      }
+    }
+
   }
 }

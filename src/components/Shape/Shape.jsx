@@ -14,8 +14,8 @@ const Shape = ({ coordinates, strokeStyle = 'black', lineWidth = 2, canvasSize }
         ctx.lineWidth = lineWidth;
 
         coordinates.forEach(([type, x, y], index) => {
-            const adjustedX = canvasSize / 2 + x;
-            const adjustedY = canvasSize / 2 - y;
+            const adjustedX = x; // Тепер x без зміщення
+            const adjustedY = canvasSize - y; // Зміщуємо Y так, щоб верхня частина канваса була 0
             if (type === 'line') {
                 if (index === 0) {
                     ctx.moveTo(adjustedX, adjustedY);

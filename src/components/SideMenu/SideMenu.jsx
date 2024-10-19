@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { CloseSquare, Setting } from 'iconic-react';
-import { motion, AnimatePresence } from 'framer-motion'; // Import necessary components
+import { CloseSquare, Setting, Refresh, Backward } from 'iconic-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from './SideMenu.module.scss';
 
 const SideMenu = ({
@@ -27,12 +27,27 @@ const SideMenu = ({
                       setGridColor,
                       canvasSize,
                       setCanvasSize,
+                      resetTransformations,
+                      resetShapeCoordinates,
+                      resetGridSettings,
+                      translateX,
+                      setTranslateX,
+                      translateY,
+                      setTranslateY,
+                      onTranslate,
+                      affineMatrix,
+                      setAffineMatrix,
+                      onApplyAffine,
+                      onApplyAffineToGrid,
                   }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleRotationChange = (e) => {
         const newAngle = Number(e.target.value);
         setRotationAngle(newAngle);
+    };
+
+    const handleRotationBlur = () => {
         onRotate();
     };
 
@@ -44,6 +59,9 @@ const SideMenu = ({
         } else if (name === 'scaleY') {
             setScaleY(numericValue);
         }
+    };
+
+    const applyScaling = () => {
         onScale();
     };
 
@@ -54,6 +72,7 @@ const SideMenu = ({
         setShapeElements(updatedElements);
         updateShapeCoordinates();
     };
+
 
     const menuVariants = {
         open: {
@@ -68,16 +87,33 @@ const SideMenu = ({
         },
     };
 
+    const handleMatrixChange = (rowIndex, colIndex, value) => {
+        const newMatrix = affineMatrix.map((row, rIndex) => {
+            if (rIndex === rowIndex) {
+                return row.map((col, cIndex) => (cIndex === colIndex ? value : col));
+            }
+            return row;
+        });
+        setAffineMatrix(newMatrix);
+    };
+
+    const handleApplyAffine = () => {
+        onApplyAffineToGrid();
+        onApplyAffine();
+    };
+
     return (
         <div className={styles.sideMenu}>
             <div className={styles.sideMenuWrapper}>
                 <div className={styles.buttonWrapper}>
-                    <button
+                    <motion.button
                         className={styles.toggleButton}
-                        onClick={() => setIsOpen(prev => !prev)}
+                        onClick={() => setIsOpen((prev) => !prev)}
+                        whileHover={{ scale: 0.9 }}
+                        whileTap={{ scale: 0.8 }}
                     >
-                        {isOpen ? <CloseSquare size="24" color="black"/> : <Setting size="24" color="black"/>}
-                    </button>
+                        {isOpen ? <CloseSquare size="24" color="black" /> : <Setting size="24" color="black" />}
+                    </motion.button>
                 </div>
                 <AnimatePresence>
                     {isOpen && (
@@ -88,6 +124,7 @@ const SideMenu = ({
                             variants={menuVariants}
                         >
                             <h2>Settings</h2>
+
                             <div className={styles.euclideanWrapper}>
                                 <h3>Euclidean Transformations</h3>
                                 <div className={styles.controlItem}>
@@ -96,6 +133,21 @@ const SideMenu = ({
                                         type="number"
                                         value={rotationAngle}
                                         onChange={handleRotationChange}
+                                        onBlur={handleRotationBlur}
+                                    />
+                                </div>
+                                <div className={styles.controlItem}>
+                                    <label>Pivot X:</label>
+                                    <input
+                                        type="number"
+                                        value={pivotX}
+                                        onChange={(e) => setPivotX(Number(e.target.value))}
+                                    />
+                                    <label>Pivot Y:</label>
+                                    <input
+                                        type="number"
+                                        value={pivotY}
+                                        onChange={(e) => setPivotY(Number(e.target.value))}
                                     />
                                 </div>
                                 <div className={styles.controlItem}>
@@ -115,20 +167,34 @@ const SideMenu = ({
                                         onChange={handleScalingChange}
                                         step="0.1"
                                     />
+                                    <motion.button
+                                        onClick={applyScaling}
+                                        whileHover={{ scale: 0.9 }}
+                                        whileTap={{ scale: 0.8 }}
+                                    >
+                                        <Backward size="24" color="white" />
+                                    </motion.button>
                                 </div>
                                 <div className={styles.controlItem}>
-                                    <label>Pivot X:</label>
+                                    <label>Move X:</label>
                                     <input
                                         type="number"
-                                        value={pivotX}
-                                        onChange={(e) => setPivotX(Number(e.target.value))}
+                                        value={translateX}
+                                        onChange={(e) => setTranslateX(Number(e.target.value))}
                                     />
-                                    <label>Pivot Y:</label>
+                                    <label>Move Y:</label>
                                     <input
                                         type="number"
-                                        value={pivotY}
-                                        onChange={(e) => setPivotY(Number(e.target.value))}
+                                        value={translateY}
+                                        onChange={(e) => setTranslateY(Number(e.target.value))}
                                     />
+                                    <motion.button
+                                        onClick={onTranslate}
+                                        whileHover={{ scaleY: 0.9, scaleX: 0.97 }}
+                                        whileTap={{ scaleY: 0.8, y: 5 }}
+                                    >
+                                        <Backward size="24" color="white" />
+                                    </motion.button>
                                 </div>
                             </div>
 
@@ -167,6 +233,15 @@ const SideMenu = ({
                                         onChange={(e) => setCanvasSize(Number(e.target.value))}
                                     />
                                 </div>
+
+                                <motion.button
+                                    onClick={resetGridSettings}
+                                    className={styles.resetButton}
+                                    whileHover={{ scaleY: 0.9, scaleX: 0.97 }}
+                                    whileTap={{ scaleY: 0.8, y: 5 }}
+                                >
+                                    Reset Grid <Refresh size="24" />
+                                </motion.button>
                             </div>
 
                             <div className={styles.shapeWrapper}>
@@ -238,8 +313,44 @@ const SideMenu = ({
                                         )}
                                     </div>
                                 ))}
+
+                                <motion.button
+                                    onClick={resetShapeCoordinates}
+                                    className={styles.resetButton}
+                                    whileHover={{ scaleY: 0.9, scaleX: 0.97 }}
+                                    whileTap={{ scaleY: 0.8, y: 5 }}
+                                >
+                                    Reset Shape <Refresh size="24" />
+                                </motion.button>
                             </div>
 
+                            <div className={styles.affineTransformWrapper}>
+                                <h3>Affine Transformations</h3>
+                                <div className={styles.matrixGrid}>
+                                    {affineMatrix.map((row, rowIndex) => (
+                                        row.map((value, colIndex) => (
+                                            <input
+                                                key={`${rowIndex}-${colIndex}`}
+                                                type="number"
+                                                value={value}
+                                                step="0.1"
+                                                onChange={(e) =>
+                                                    handleMatrixChange(rowIndex, colIndex, parseFloat(e.target.value))
+                                                }
+                                                className={styles.matrixInput}
+                                            />
+                                        ))
+                                    ))}
+                                </div>
+                                <motion.button
+                                    onClick={handleApplyAffine}
+                                    className={styles.resetButton}
+                                    whileHover={{ scaleY: 0.9, scaleX: 0.97 }}
+                                    whileTap={{ scaleY: 0.8, y: 5 }}
+                                >
+                                    Apply Affine Transformation
+                                </motion.button>
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>

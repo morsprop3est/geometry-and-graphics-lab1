@@ -15,6 +15,7 @@ export const calculateArc = (centerX, centerY, radius, startAngleDegrees, endAng
     return arcCoordinates;
 };
 
+
 export const applyTransformation = (shapeCoordinates, matrix, setShapeCoordinates) => {
     const transformedCoordinates = shapeCoordinates.map(([type, ...coords]) => {
         if (type === 'line') {
@@ -52,18 +53,25 @@ export const rotateShape = (shapeCoordinates, rotationAngle, pivotX, pivotY, set
     applyTransformation(shapeCoordinates, rotationMatrix, setShapeCoordinates);
 };
 
-
-const matrixMultiplication = (m1, m2) => {
-    const result = [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-    ];
-
-    for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-            result[i][j] = m1[i][0] * m2[0][j] + m1[i][1] * m2[1][j] + m1[i][2] * m2[2][j];
+export const translateShape = (coordinates, translateX, translateY, setShapeCoordinates) => {
+    const translatedCoordinates = coordinates.map((coord) => {
+        if (coord[0] === 'line') {
+            return ['line', coord[1] + translateX, coord[2] + translateY];
         }
-    }
-    return result;
+        return coord;
+    });
+    setShapeCoordinates(translatedCoordinates);
 };
+export const applyAffineTransformations = (coordinates, matrix) => {
+    return coordinates.map((point) => {
+        const x = point[1];
+        const y = point[2];
+        const newX = matrix[0][0] * x + matrix[0][1] * y + matrix[0][2];
+        const newY = matrix[1][0] * x + matrix[1][1] * y + matrix[1][2];
+        return ['line', newX, newY];
+    });
+};
+
+
+
+
