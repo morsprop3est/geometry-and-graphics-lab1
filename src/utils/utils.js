@@ -45,12 +45,16 @@ export const rotateShape = (shapeCoordinates, rotationAngle, pivotX, pivotY, set
     const cosA = Math.cos(angle);
     const sinA = Math.sin(angle);
 
-    const rotationMatrix = [
-        [cosA, -sinA, pivotX * (1 - cosA) + pivotY * sinA],
-        [sinA, cosA, pivotY * (1 - cosA) - pivotX * sinA],
-    ];
+    const rotatedCoordinates = shapeCoordinates.map(([type, x, y]) => {
+        if (type === 'line') {
+            const newX = cosA * (x - pivotX) - sinA * (y - pivotY) + pivotX;
+            const newY = sinA * (x - pivotX) + cosA * (y - pivotY) + pivotY;
+            return ['line', newX, newY];
+        }
+        return [type, x, y];
+    });
 
-    applyTransformation(shapeCoordinates, rotationMatrix, setShapeCoordinates);
+    setShapeCoordinates(rotatedCoordinates);
 };
 
 export const translateShape = (coordinates, translateX, translateY, setShapeCoordinates) => {
@@ -62,16 +66,56 @@ export const translateShape = (coordinates, translateX, translateY, setShapeCoor
     });
     setShapeCoordinates(translatedCoordinates);
 };
+
 export const applyAffineTransformations = (coordinates, matrix) => {
-    return coordinates.map((point) => {
+    const transformedCoordinates = [];
+
+    for (let i = 0; i < coordinates.length; i++) {
+        const point = coordinates[i];
+
+        if (point[0] === 'emptyPoint') {
+            transformedCoordinates.push(['emptyPoint']);
+            continue;
+        }
+
         const x = point[1];
         const y = point[2];
-        const newX = matrix[0][0] * x + matrix[0][1] * y + matrix[0][2];
-        const newY = matrix[1][0] * x + matrix[1][1] * y + matrix[1][2];
-        return ['line', newX, newY];
-    });
+        const newX = (matrix[0][0] * x + matrix[1][0] * y + matrix[2][0]) / 10;
+        const newY = (matrix[0][1] * x + matrix[1][1] * y + matrix[2][1]) / 10;
+
+        transformedCoordinates.push(['line', newX, newY]);
+    }
+
+    return transformedCoordinates;
 };
 
+export const applyProjectiveTransformations = (shapeCoordinates, projectiveParameters) => {
+    const transformedCoordinates = [];
 
+    const [Xx, Xy, wX] = projectiveParameters[0];
+    const [Yx, Yy, wY] = projectiveParameters[1];
+    const [Ox, Oy, wO] = projectiveParameters[2];
 
+    const projectiveMatrix = [
+        [Xx * wX, Xy * wX, wX],
+        [Yx * wY, Yy * wY, wY],
+        [Ox * wO, Oy * wO, wO],
+    ];
 
+    for (let i = 0; i < shapeCoordinates.length; i++) {
+        const [type, x, y] = shapeCoordinates[i];
+
+        if (type === 'emptyPoint') {
+            transformedCoordinates.push(['emptyPoint']);
+            continue;
+        }
+
+        const denominator = x * projectiveMatrix[0][2] + y * projectiveMatrix[1][2] + projectiveMatrix[2][2];
+        const newX = ((x * projectiveMatrix[0][0] + y * projectiveMatrix[1][0] + projectiveMatrix[2][0]) / denominator) * 5;
+        const newY = ((x * projectiveMatrix[0][1] + y * projectiveMatrix[1][1] + projectiveMatrix[2][1]) / denominator) * 5;
+
+        transformedCoordinates.push([type, newX, newY]);
+    }
+
+    return transformedCoordinates;
+};

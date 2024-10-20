@@ -2,23 +2,41 @@ import React, { useState, useEffect } from 'react';
 import Shape from './components/Shape/Shape';
 import Graph from './components/Graph/Graph';
 import SideMenu from './components/SideMenu/SideMenu';
-import { calculateArc, scaleShape, rotateShape, translateShape, applyAffineTransformations } from './utils/utils';
+import {
+    calculateArc,
+    scaleShape,
+    rotateShape,
+    translateShape,
+    applyAffineTransformations,
+    applyProjectiveTransformations,
+} from './utils/utils';
 
 const defaultShapeElements = [
-    { type: 'point', x: 100, y: 100 },
-    { type: 'point', x: 200, y: 100 },
-    { type: 'point', x: 200, y: 200 },
-    { type: 'arc', centerX: 150, centerY: 150, radius: 50, startAngle: 0, endAngle: -90 },
-    { type: 'point', x: 200, y: 200 },
-    { type: 'arc', centerX: 100, centerY: 150, radius: 50, startAngle: -90, endAngle: -270 },
-    { type: 'point', x: 200, y: 200 },
+    { type: 'arc', centerX: 27.5, centerY: 65, radius: 10, startAngle: 0, endAngle: 180 },
+    { type: 'arc', centerX: 0, centerY: 65, radius: 10, startAngle: 0, endAngle: -90 },
+    { type: 'arc', centerX: 0, centerY: 10, radius: 10, startAngle: 90, endAngle: 0 },
+    { type: 'arc', centerX: 27.5, centerY: 10, radius: 10, startAngle: -180, endAngle: 0 },
+    { type: 'arc', centerX: 55, centerY: 10, radius: 10, startAngle: 180, endAngle: 90 },
+    { type: 'arc', centerX: 55, centerY: 65, radius: 10, startAngle: -90, endAngle: -180 },
+
+
+    { type: 'emptyPoint' },
+    { type: 'arc', centerX: 27.5, centerY: 65, radius: 5, startAngle: 0, endAngle: 180 },
+    { type: 'arc', centerX: 27.5, centerY: 37.5, radius: 13, startAngle: -250, endAngle: -110 },
+    { type: 'arc', centerX: 27.5, centerY: 10, radius: 5, startAngle: 180, endAngle: 360 },
+    { type: 'arc', centerX: 27.5, centerY: 37.5, radius: 13, startAngle: -70, endAngle: 70 },
+
 ];
 
+
 const defaultAffineMatrix = [
-    [1, 0, 0],
-    [0, 1, 0],
-    [0, 0, 1],
-];
+    [30, 20, 0],
+    [0, 10, 0],
+    [0, 0, 10]];
+const defaultProjectiveMatrix = [
+    [150, 0, 3],
+    [0, 200, 6],
+    [0, 0, 500]];
 
 const defaultGridSettings = {
     gridSize: 20,
@@ -29,7 +47,6 @@ const defaultGridSettings = {
 
 const App = () => {
     const [shapeElements, setShapeElements] = useState(defaultShapeElements);
-    const [affineMatrix, setAffineMatrix] = useState(defaultAffineMatrix);
     const [rotationAngle, setRotationAngle] = useState(0);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
@@ -41,44 +58,48 @@ const App = () => {
     const [gridDensity, setGridDensity] = useState(defaultGridSettings.gridDensity);
     const [gridColor, setGridColor] = useState(defaultGridSettings.gridColor);
     const [canvasSize, setCanvasSize] = useState(defaultGridSettings.canvasSize);
+    const [affineMatrix, setAffineMatrix] = useState(defaultAffineMatrix);
+    const [projectiveMatrix, setProjectiveMatrix] = useState(defaultProjectiveMatrix);
     const [gridCoordinates, setGridCoordinates] = useState([]);
     const [isTransformed, setIsTransformed] = useState(false);
+    const [shapeCoordinates, setShapeCoordinates] = useState([]);
 
+    useEffect(() => {
+        updateShapeCoordinates();
+    }, [shapeElements, gridSize]);
 
-    const [shapeCoordinates, setShapeCoordinates] = useState(() => {
-        return shapeElements.flatMap((element) => {
-            if (element.type === 'point') {
-                return [['line', element.x, element.y]];
-            } else if (element.type === 'arc') {
-                return calculateArc(
-                    element.centerX,
-                    element.centerY,
-                    element.radius,
-                    element.startAngle,
-                    element.endAngle,
-                    20
-                );
-            }
-            return [];
-        });
-    });
+    const [defaultGridSize] = useState(defaultGridSettings.gridSize);
 
     const updateShapeCoordinates = () => {
-        const updatedCoordinates = shapeElements.flatMap((element) => {
+        const updatedCoordinates = [];
+        let currentShape = [];
+
+        shapeElements.forEach((element) => {
             if (element.type === 'point') {
-                return [['line', element.x, element.y]];
+                currentShape.push(['line', element.x  * (gridSize / defaultGridSize), element.y  * (gridSize / defaultGridSize)]);
             } else if (element.type === 'arc') {
-                return calculateArc(
-                    element.centerX,
-                    element.centerY,
-                    element.radius,
+                const arcPoints = calculateArc(
+                    element.centerX * (gridSize / defaultGridSize),
+                    element.centerY * (gridSize / defaultGridSize),
+                    element.radius * (gridSize / defaultGridSize),
                     element.startAngle,
                     element.endAngle,
                     20
                 );
+                updatedCoordinates.push(...arcPoints);
+            } else if (element.type === 'emptyPoint') {
+                if (currentShape.length > 0) {
+                    updatedCoordinates.push(['line', currentShape[0][1], currentShape[0][2]]);
+                    currentShape = [];
+                }
+                updatedCoordinates.push(['emptyPoint']);
             }
-            return [];
         });
+
+        if (currentShape.length > 0) {
+            updatedCoordinates.push(...currentShape);
+        }
+
         setShapeCoordinates(updatedCoordinates);
     };
 
@@ -99,18 +120,17 @@ const App = () => {
         for (let y = -halfHeight; y <= halfHeight; y += step) {
             lines.push({
                 type: 'horizontal',
-                start: { x: 0, y: halfHeight - y },
-                end: { x: canvasSize, y: halfHeight - y },
+                start: { x: 0, y: halfHeight + y },
+                end: { x: canvasSize, y: halfHeight + y },
             });
         }
 
-        return lines.flatMap((line) => {
-            return [
-                ['line', line.start.x, line.start.y],
-                ['line', line.end.x, line.end.y],
-            ];
-        });
+        return lines.flatMap((line) => [
+            ['line', line.start.x, line.start.y],
+            ['line', line.end.x, line.end.y],
+        ]);
     };
+
 
     const updateGridCoordinates = () => {
         const lines = calculateGridLines();
@@ -124,11 +144,22 @@ const App = () => {
     const applyAffineTransformation = () => {
         const transformedCoordinates = applyAffineTransformations(shapeCoordinates, affineMatrix);
         setShapeCoordinates(transformedCoordinates);
-        setIsTransformed(true); // Set transformed state
+        setIsTransformed(true);
+    };
+
+    const applyProjectiveTransformation = () => {
+        const transformedCoordinates = applyProjectiveTransformations(shapeCoordinates, projectiveMatrix);
+        setShapeCoordinates(transformedCoordinates);
+        setIsTransformed(true);
     };
 
     const applyAffineToGrid = () => {
         const transformedGridCoords = applyAffineTransformations(gridCoordinates, affineMatrix);
+        setGridCoordinates(transformedGridCoords);
+    };
+
+    const applyProjectiveToGrid = () => {
+        const transformedGridCoords = applyProjectiveTransformations(gridCoordinates, projectiveMatrix);
         setGridCoordinates(transformedGridCoords);
     };
 
@@ -139,6 +170,7 @@ const App = () => {
         setPivotX(0);
         setPivotY(0);
         setAffineMatrix(defaultAffineMatrix);
+        setProjectiveMatrix(defaultProjectiveMatrix);
     };
 
     const resetGridSettings = () => {
@@ -147,6 +179,7 @@ const App = () => {
         setGridColor(defaultGridSettings.gridColor);
         setCanvasSize(defaultGridSettings.canvasSize);
         updateGridCoordinates();
+        updateShapeCoordinates();
     };
 
     const resetShapeCoordinates = () => {
@@ -163,19 +196,19 @@ const App = () => {
             <SideMenu
                 shapeElements={shapeElements}
                 setShapeElements={setShapeElements}
+                updateShapeCoordinates={updateShapeCoordinates}
                 rotationAngle={rotationAngle}
                 setRotationAngle={setRotationAngle}
                 scaleX={scaleX}
-                scaleY={scaleY}
                 setScaleX={setScaleX}
+                scaleY={scaleY}
                 setScaleY={setScaleY}
                 pivotX={pivotX}
-                pivotY={pivotY}
                 setPivotX={setPivotX}
+                pivotY={pivotY}
                 setPivotY={setPivotY}
                 onScale={() => scaleShape(shapeCoordinates, scaleX, scaleY, setShapeCoordinates)}
                 onRotate={() => rotateShape(shapeCoordinates, rotationAngle, pivotX, pivotY, setShapeCoordinates)}
-                updateShapeCoordinates={updateShapeCoordinates}
                 gridSize={gridSize}
                 setGridSize={setGridSize}
                 gridDensity={gridDensity}
@@ -184,9 +217,6 @@ const App = () => {
                 setGridColor={setGridColor}
                 canvasSize={canvasSize}
                 setCanvasSize={setCanvasSize}
-                resetTransformations={resetTransformations}
-                resetShapeCoordinates={resetShapeCoordinates}
-                resetGridSettings={resetGridSettings}
                 translateX={translateX}
                 setTranslateX={setTranslateX}
                 translateY={translateY}
@@ -196,11 +226,15 @@ const App = () => {
                 setAffineMatrix={setAffineMatrix}
                 onApplyAffine={applyAffineTransformation}
                 onApplyAffineToGrid={applyAffineToGrid}
+                projectiveMatrix={projectiveMatrix}
+                setProjectiveMatrix={setProjectiveMatrix}
+                onApplyProjective={applyProjectiveTransformation}
+                onApplyProjectiveToGrid={applyProjectiveToGrid}
+                resetTransformations={resetTransformations}
+                resetShapeCoordinates={resetShapeCoordinates}
+                resetGridSettings={resetGridSettings}
             />
-            <Shape
-                coordinates={shapeCoordinates}
-                canvasSize={canvasSize}
-            />
+            <Shape coordinates={shapeCoordinates} canvasSize={canvasSize} />
             <Graph
                 pivot={isTransformed ? null : { x: pivotX, y: pivotY }}
                 gridSize={gridSize}

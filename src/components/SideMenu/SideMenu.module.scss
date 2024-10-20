@@ -129,6 +129,19 @@
         border-radius: 5px;
       }
 
+      .resetAllButton {
+        background-color: #570007;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-size: 1rem;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+      }
+
 
       h3 {
         font-size: 1em;
@@ -174,10 +187,12 @@
       }
     }
 
-    .affineTransformWrapper {
+    .affineWrapper {
       display: flex;
       flex-direction: column;
       gap: 15px;
+      margin-top: 25px;
+
 
       .resetButton {
         background-color: black;
@@ -191,6 +206,7 @@
         border: none;
         border-radius: 5px;
       }
+
 
       h3 {
         font-size: 1em;
