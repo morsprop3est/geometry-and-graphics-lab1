@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { CloseSquare, Setting, Refresh, Backward } from 'iconic-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ShapePageOne from "./ShapePageOne";
+import ShapePageTwo from "./ShapePageTwo";
 import styles from './SideMenu.module.scss';
 
 const SideMenu = ({
                       shapeElements,
                       setShapeElements,
+                      defaultShapeElements,
                       rotationAngle,
                       setRotationAngle,
                       scaleX,
@@ -41,14 +44,11 @@ const SideMenu = ({
                       projectiveMatrix,
                       setProjectiveMatrix,
                       onApplyProjective,
-                      onApplyProjectiveToGrid
+                      onApplyProjectiveToGrid,
+                      onApplySymmetry
                   }) => {
     const [isOpen, setIsOpen] = useState(false);
-
-    const resetAll = () => {
-        resetShapeCoordinates();
-        resetGridSettings();
-    }
+    const [currentShapePage, setCurrentShapePage] = useState(1);
 
     const handleRotationChange = (e) => {
         setRotationAngle(Number(e.target.value));
@@ -105,6 +105,9 @@ const SideMenu = ({
         onRotate();
     };
 
+    const handlePageChange = (pageNumber) => {
+        setCurrentShapePage(pageNumber);
+    };
 
     return (
         <div className={styles.sideMenu}>
@@ -123,7 +126,6 @@ const SideMenu = ({
                     {isOpen && (
                         <motion.div initial="closed" animate="open" exit="closed" variants={menuVariants}>
                             <h2>Settings</h2>
-
 
                             <div className={styles.gridWrapper}>
                                 <h3>Grid Settings</h3>
@@ -147,85 +149,53 @@ const SideMenu = ({
                                     <input type="number" value={canvasSize}
                                            onChange={(e) => setCanvasSize(Number(e.target.value))}/>
                                 </div>
-                                <motion.button onClick={resetGridSettings} className={styles.resetButton}
-                                               whileHover={{scaleY: 0.9, scaleX: 0.97}} whileTap={{scaleY: 0.8, y: 5}}>
+                                <motion.button
+                                    onClick={resetGridSettings}
+                                    className={styles.resetButton}
+                                    whileHover={{ scaleX: 0.95, scaleY: 0.9 }}
+                                    whileTap={{ scale: 0.8 }}
+                                >
                                     Reset Grid <Refresh size="24"/>
                                 </motion.button>
                             </div>
 
                             <div className={styles.shapeWrapper}>
-                                <h3>Shape Coordinates</h3>
-                                {shapeElements.map((element, index) => {
-                                    const isEmptyPoint = element.type === 'emptyPoint';
-                                    let shapeIndex = 1;
-
-                                    if (isEmptyPoint) {
-                                        shapeIndex++;
-                                        return <h4 key={index}>Shape {shapeIndex} Coordinates</h4>;
-                                    }
-
-                                    return (
-                                        <div key={index} className={styles.controlItem}>
-                                            {element.type === 'point' ? (
-                                                <>
-                                                    <label>X{index + 1}:</label>
-                                                    <input
-                                                        type="number"
-                                                        value={element.x}
-                                                        onChange={(e) => handleElementChange(index, 'x', e.target.value)}
-                                                    />
-                                                    <label>Y{index + 1}:</label>
-                                                    <input
-                                                        type="number"
-                                                        value={element.y}
-                                                        onChange={(e) => handleElementChange(index, 'y', e.target.value)}
-                                                    />
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <label>X{index + 1}:</label>
-                                                    <input
-                                                        type="number"
-                                                        value={element.centerX}
-                                                        onChange={(e) => handleElementChange(index, 'centerX', e.target.value)}
-                                                    />
-                                                    <label>Y{index + 1}:</label>
-                                                    <input
-                                                        type="number"
-                                                        value={element.centerY}
-                                                        onChange={(e) => handleElementChange(index, 'centerY', e.target.value)}
-                                                    />
-                                                    <label>Radius:</label>
-                                                    <input
-                                                        type="number"
-                                                        value={element.radius}
-                                                        onChange={(e) => handleElementChange(index, 'radius', e.target.value)}
-                                                    />
-                                                    <label>Start Angle:</label>
-                                                    <input
-                                                        type="number"
-                                                        value={element.startAngle}
-                                                        onChange={(e) => handleElementChange(index, 'startAngle', e.target.value)}
-                                                    />
-                                                    <label>End Angle:</label>
-                                                    <input
-                                                        type="number"
-                                                        value={element.endAngle}
-                                                        onChange={(e) => handleElementChange(index, 'endAngle', e.target.value)}
-                                                    />
-                                                </>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                                <motion.button onClick={resetShapeCoordinates} className={styles.resetButton}>
-                                    Reset Shape <Refresh size="24"/>
-                                </motion.button>
-                                <motion.button onClick={resetAll} className={styles.resetAllButton}>
-                                    Reset All <Refresh size="24"/>
-                                </motion.button>
+                                <div className={styles.paginationButtons}>
+                                    <motion.button
+                                        onClick={() => handlePageChange(1)}
+                                        disabled={currentShapePage === 1}
+                                        whileHover={{ scale: 0.95 }}
+                                        whileTap={{ scale: 0.8 }}
+                                    >
+                                        Length
+                                    </motion.button>
+                                    <motion.button
+                                        onClick={() => handlePageChange(2)}
+                                        disabled={currentShapePage === 2}
+                                        whileHover={{ scale: 0.95 }}
+                                        whileTap={{ scale: 0.8 }}
+                                    >
+                                        Coordinates
+                                    </motion.button>
+                                </div>
+                                {currentShapePage === 1 && (
+                                    <div>
+                                        <ShapePageOne
+                                            shapeElements={shapeElements}
+                                            defaultShapeElements={defaultShapeElements}
+                                            setShapeElements={setShapeElements}
+                                            updateShapeCoordinates={updateShapeCoordinates}
+                                        />
+                                    </div>
+                                )}
+                                {currentShapePage === 2 && (
+                                    <ShapePageTwo
+                                        shapeElements={shapeElements}
+                                        handleElementChange={handleElementChange}
+                                        resetShapeCoordinates={resetShapeCoordinates}
+                                    />
+                                )}
                             </div>
-
 
                             <div className={styles.euclideanWrapper}>
                                 <h3>Euclidean Transformations</h3>
@@ -236,8 +206,11 @@ const SideMenu = ({
                                         value={rotationAngle}
                                         onChange={handleRotationChange}
                                     />
-                                    <motion.button onClick={handleRotationButtonClick} whileHover={{scale: 0.9}}
-                                                   whileTap={{scale: 0.8}}>
+                                    <motion.button
+                                        onClick={handleRotationButtonClick}
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                    >
                                         <Backward size="24" color="white"/>
                                     </motion.button>
                                 </div>
@@ -248,7 +221,15 @@ const SideMenu = ({
                                     <label>Pivot Y:</label>
                                     <input type="number" value={pivotY}
                                            onChange={(e) => setPivotY(Number(e.target.value))}/>
+                                    <motion.button
+                                        onClick={onApplySymmetry}
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                    >
+                                        Apply Symmetry
+                                    </motion.button>
                                 </div>
+
                                 <div className={styles.controlItem}>
                                     <label>Scale X:</label>
                                     <input type="number" name="scaleX" value={scaleX} onChange={handleScalingChange}
@@ -256,7 +237,11 @@ const SideMenu = ({
                                     <label>Scale Y:</label>
                                     <input type="number" name="scaleY" value={scaleY} onChange={handleScalingChange}
                                            step="0.1"/>
-                                    <motion.button onClick={onScale} whileHover={{scale: 0.9}} whileTap={{scale: 0.8}}>
+                                    <motion.button
+                                        onClick={onScale}
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                    >
                                         <Backward size="24" color="white"/>
                                     </motion.button>
                                 </div>
@@ -267,8 +252,11 @@ const SideMenu = ({
                                     <label>Move Y:</label>
                                     <input type="number" value={translateY}
                                            onChange={(e) => setTranslateY(Number(e.target.value))}/>
-                                    <motion.button onClick={onTranslate} whileHover={{scaleY: 0.9, scaleX: 0.97}}
-                                                   whileTap={{scaleY: 0.8, y: 5}}>
+                                    <motion.button
+                                        onClick={onTranslate}
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                    >
                                         <Backward size="24" color="white"/>
                                     </motion.button>
                                 </div>
@@ -290,7 +278,12 @@ const SideMenu = ({
                                         ))
                                     ))}
                                 </div>
-                                <motion.button onClick={handleApplyAffine} className={styles.resetButton}>
+                                <motion.button
+                                    onClick={handleApplyAffine}
+                                    className={styles.resetButton}
+                                    whileHover={{ scaleX: 0.95, scaleY: 0.9 }}
+                                    whileTap={{ scale: 0.8 }}
+                                >
                                     Apply Affine
                                 </motion.button>
                             </div>
@@ -311,7 +304,12 @@ const SideMenu = ({
                                         ))
                                     ))}
                                 </div>
-                                <motion.button onClick={handleApplyProjective} className={styles.resetButton}>
+                                <motion.button
+                                    onClick={handleApplyProjective}
+                                    className={styles.resetButton}
+                                    whileHover={{ scaleX: 0.95, scaleY: 0.9 }}
+                                    whileTap={{ scale: 0.8 }}
+                                >
                                     Apply Projective
                                 </motion.button>
                             </div>

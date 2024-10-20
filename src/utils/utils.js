@@ -57,8 +57,8 @@ export const rotateShape = (shapeCoordinates, rotationAngle, pivotX, pivotY, set
     setShapeCoordinates(rotatedCoordinates);
 };
 
-export const translateShape = (coordinates, translateX, translateY, setShapeCoordinates) => {
-    const translatedCoordinates = coordinates.map((coord) => {
+export const translateShape = (shapeCoordinates, translateX, translateY, setShapeCoordinates) => {
+    const translatedCoordinates = shapeCoordinates.map((coord) => {
         if (coord[0] === 'line') {
             return ['line', coord[1] + translateX, coord[2] + translateY];
         }
@@ -67,11 +67,11 @@ export const translateShape = (coordinates, translateX, translateY, setShapeCoor
     setShapeCoordinates(translatedCoordinates);
 };
 
-export const applyAffineTransformations = (coordinates, matrix) => {
+export const applyAffineTransformations = (shapeCoordinates, matrix) => {
     const transformedCoordinates = [];
 
-    for (let i = 0; i < coordinates.length; i++) {
-        const point = coordinates[i];
+    for (let i = 0; i < shapeCoordinates.length; i++) {
+        const point = shapeCoordinates[i];
 
         if (point[0] === 'emptyPoint') {
             transformedCoordinates.push(['emptyPoint']);
@@ -87,6 +87,21 @@ export const applyAffineTransformations = (coordinates, matrix) => {
     }
 
     return transformedCoordinates;
+};
+
+export const applySymmetryTransformations = (shapeCoordinates, pivot, setShapeCoordinates) => {
+    const transformedCoordinates = shapeCoordinates.map(([type, x, y]) => {
+        if (type === 'emptyPoint') {
+            return ['emptyPoint'];
+        }
+
+        const newX = 2 * pivot.x - x;
+        const newY = 2 * pivot.y - y;
+
+        return [type, newX, newY];
+    });
+
+    setShapeCoordinates(transformedCoordinates);
 };
 
 export const applyProjectiveTransformations = (shapeCoordinates, projectiveParameters) => {

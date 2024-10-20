@@ -8,6 +8,7 @@ import {
     rotateShape,
     translateShape,
     applyAffineTransformations,
+    applySymmetryTransformations,
     applyProjectiveTransformations,
 } from './utils/utils';
 
@@ -22,9 +23,9 @@ const defaultShapeElements = [
 
     { type: 'emptyPoint' },
     { type: 'arc', centerX: 27.5, centerY: 65, radius: 5, startAngle: 0, endAngle: 180 },
-    { type: 'arc', centerX: 27.5, centerY: 37.5, radius: 13, startAngle: -250, endAngle: -110 },
+    { type: 'arc', centerX: 27.5, centerY: 37.5, radius: 13, startAngle: -247, endAngle: -113 },
     { type: 'arc', centerX: 27.5, centerY: 10, radius: 5, startAngle: 180, endAngle: 360 },
-    { type: 'arc', centerX: 27.5, centerY: 37.5, radius: 13, startAngle: -70, endAngle: 70 },
+    { type: 'arc', centerX: 27.5, centerY: 37.5, radius: 13, startAngle: -67, endAngle: 67 },
 
 ];
 
@@ -33,6 +34,8 @@ const defaultAffineMatrix = [
     [30, 20, 0],
     [0, 10, 0],
     [0, 0, 10]];
+
+
 const defaultProjectiveMatrix = [
     [150, 0, 3],
     [0, 200, 6],
@@ -40,7 +43,7 @@ const defaultProjectiveMatrix = [
 
 const defaultGridSettings = {
     gridSize: 20,
-    gridDensity: 1,
+    gridDensity: 2,
     gridColor: '#cccccc',
     canvasSize: 800,
 };
@@ -63,6 +66,7 @@ const App = () => {
     const [gridCoordinates, setGridCoordinates] = useState([]);
     const [isTransformed, setIsTransformed] = useState(false);
     const [shapeCoordinates, setShapeCoordinates] = useState([]);
+
 
     useEffect(() => {
         updateShapeCoordinates();
@@ -147,6 +151,11 @@ const App = () => {
         setIsTransformed(true);
     };
 
+    const applySymmetryTransformation = () => {
+        applySymmetryTransformations(shapeCoordinates, { x: pivotX * (gridSize / defaultGridSize), y: pivotY * (gridSize / defaultGridSize) }, setShapeCoordinates);
+    };
+
+
     const applyProjectiveTransformation = () => {
         const transformedCoordinates = applyProjectiveTransformations(shapeCoordinates, projectiveMatrix);
         setShapeCoordinates(transformedCoordinates);
@@ -197,6 +206,7 @@ const App = () => {
                 shapeElements={shapeElements}
                 setShapeElements={setShapeElements}
                 updateShapeCoordinates={updateShapeCoordinates}
+                defaultShapeElements={defaultShapeElements}
                 rotationAngle={rotationAngle}
                 setRotationAngle={setRotationAngle}
                 scaleX={scaleX}
@@ -208,7 +218,7 @@ const App = () => {
                 pivotY={pivotY}
                 setPivotY={setPivotY}
                 onScale={() => scaleShape(shapeCoordinates, scaleX, scaleY, setShapeCoordinates)}
-                onRotate={() => rotateShape(shapeCoordinates, rotationAngle, pivotX, pivotY, setShapeCoordinates)}
+                onRotate={() => rotateShape(shapeCoordinates, rotationAngle, pivotX * (gridSize / defaultGridSize), pivotY * (gridSize / defaultGridSize), setShapeCoordinates)}
                 gridSize={gridSize}
                 setGridSize={setGridSize}
                 gridDensity={gridDensity}
@@ -233,11 +243,14 @@ const App = () => {
                 resetTransformations={resetTransformations}
                 resetShapeCoordinates={resetShapeCoordinates}
                 resetGridSettings={resetGridSettings}
+                setShapeCoordinates={setShapeCoordinates}
+                onApplySymmetry={applySymmetryTransformation}
             />
             <Shape coordinates={shapeCoordinates} canvasSize={canvasSize} />
             <Graph
                 pivot={isTransformed ? null : { x: pivotX, y: pivotY }}
                 gridSize={gridSize}
+                defaultGridSize={defaultGridSize}
                 gridDensity={gridDensity}
                 gridColor={gridColor}
                 canvasSize={canvasSize}
@@ -249,3 +262,6 @@ const App = () => {
 };
 
 export default App;
+
+
+
