@@ -9,31 +9,30 @@ const Shape = ({ coordinates, strokeStyle = 'black', lineWidth = 2, canvasSize }
         const ctx = canvas.getContext('2d');
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
         ctx.strokeStyle = strokeStyle;
         ctx.lineWidth = lineWidth;
 
         coordinates.forEach((coordinate, index) => {
             const [type, x, y] = coordinate;
-            const adjustedX = x;
-            const adjustedY = canvasSize - y;
 
             if (type === 'line') {
-                if (index === 0 || coordinates[index - 1][0] === 'emptyPoint') {
+                if (index === 0 || coordinates[index - 1][0] !== 'line') {
                     ctx.beginPath();
-                    ctx.moveTo(adjustedX, adjustedY);
+                    ctx.moveTo(x, y);
                 } else {
-                    ctx.lineTo(adjustedX, adjustedY);
+                    ctx.lineTo(x, y);
                 }
-            } else if (type === 'emptyPoint') {
-                ctx.closePath();
-                ctx.stroke();
             }
         });
 
-        if (coordinates.length > 0 && coordinates[coordinates.length - 1][0] !== 'emptyPoint') {
-            ctx.closePath();
-            ctx.stroke();
-        }
+        ctx.stroke();
+
+        ctx.strokeStyle = 'red';
+        ctx.beginPath();
+        ctx.moveTo(0, canvasSize / 2);
+        ctx.lineTo(canvasSize, canvasSize / 2);
+        ctx.stroke();
     }, [coordinates, strokeStyle, lineWidth, canvasSize]);
 
     return <canvas ref={canvasRef} width={canvasSize} height={canvasSize} className={styles.canvas} />;
