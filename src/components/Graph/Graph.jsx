@@ -38,7 +38,15 @@ const Graph = ({ pivot, canvasSize }) => {
         ctx.moveTo(0, canvasSize / 2);
         ctx.lineTo(canvasSize, canvasSize / 2);
         ctx.stroke();
-    }, [canvasSize]);
+
+        ctx.fillStyle = 'blue';
+        ctx.beginPath();
+        ctx.arc(pivot.x, pivot.y, 5, 0, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = 1;
+    }, [canvasSize, pivot]);
 
     return <canvas ref={canvasRef} width={canvasSize} height={canvasSize} className={styles.canvas} />;
 };

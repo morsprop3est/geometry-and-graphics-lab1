@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react'; // Додано useState
-import { motion, AnimatePresence } from 'framer-motion'; // Додано імпорт motion та AnimatePresence
-import { CloseSquare, Setting, Backward } from 'iconic-react'; // Додано імпорт іконок
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CloseSquare, Setting} from 'iconic-react';
 import styles from './SideMenu.module.scss';
 
-// Додайте або замініть menuVariants на ваші варіанти анімації
 const menuVariants = {
     open: { opacity: 1, height: 'auto' },
     closed: { opacity: 0, height: 0 },
@@ -16,16 +15,17 @@ const SideMenu = ({
                       pivotY,
                       setPivotX,
                       setPivotY,
-                      onRotate,
                       translateX,
                       setTranslateX,
                       translateY,
                       setTranslateY,
-                      onTranslate,
                       curveSettings,
                       setCurveSettings,
-                          toggleAnimation,
-                      isAnimating, //
+                      toggleAnimation,
+                      isAnimating,
+                      isAsymptote,
+                      setIsAsymptote,
+                      toggleDotAnimation
                   }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -33,9 +33,6 @@ const SideMenu = ({
         setRotationAngle(Number(e.target.value));
     };
 
-    const handleRotationButtonClick = () => {
-        onRotate();
-    };
 
     const handleCurveSettingChange = (key, value) => {
         setCurveSettings(prev => ({ ...prev, [key]: Number(value) }));
@@ -68,13 +65,6 @@ const SideMenu = ({
                                         value={rotationAngle}
                                         onChange={handleRotationChange}
                                     />
-                                    <motion.button
-                                        onClick={handleRotationButtonClick}
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                    >
-                                        <Backward size="24" color="white" />
-                                    </motion.button>
                                 </div>
                                 <div className={styles.controlItem}>
                                     <label>Pivot X:</label>
@@ -88,17 +78,10 @@ const SideMenu = ({
                                     <input type="number" value={translateX} onChange={(e) => setTranslateX(Number(e.target.value))} />
                                     <label>Move Y:</label>
                                     <input type="number" value={translateY} onChange={(e) => setTranslateY(Number(e.target.value))} />
-                                    <motion.button
-                                        onClick={onTranslate}
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                    >
-                                        <Backward size="24" color="white" />
-                                    </motion.button>
                                 </div>
                             </div>
 
-                            <div className={styles.curveWrapper}>
+                            <div className={styles.euclideanWrapper}>
                                 <h3>Versiera Curve Parameters</h3>
                                 <div className={styles.controlItem}>
                                     <label>Amplitude:</label>
@@ -124,15 +107,37 @@ const SideMenu = ({
                                         onChange={(e) => handleCurveSettingChange('resolution', e.target.value)}
                                     />
                                 </div>
-                            </div>
-                            <div className={styles.controlItem}>
-                                <motion.button
-                                    onClick={toggleAnimation} // Додаємо обробник для кнопки анімації
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                >
-                                    {isAnimating ? 'Stop Animation' : 'Start Animation'}
-                                </motion.button>
+
+                                <div className={styles.controlItem}>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={isAsymptote}
+                                            onChange={(e) => setIsAsymptote(e.target.checked)}
+                                        />
+                                        Show Asymptote
+                                    </label>
+                                </div>
+
+                                <div className={styles.controlItem}>
+                                    <motion.button
+                                        className={styles.resetButton}
+                                        onClick={toggleAnimation}
+                                        whileHover={{scale: 1.1}}
+                                        whileTap={{scale: 0.9}}
+                                    >
+                                        {isAnimating ? 'Stop Animation' : 'Start Animation'}
+                                    </motion.button>
+
+                                    <motion.button
+                                        className={styles.resetButton}
+                                        onClick={toggleDotAnimation}
+                                        whileHover={{scale: 1.1}}
+                                        whileTap={{scale: 0.9}}
+                                    >
+                                        {isAnimating ? 'Stop Dot Animation' : 'Start Dot Animation'}
+                                    </motion.button>
+                                </div>
                             </div>
                         </motion.div>
                     )}
