@@ -23,11 +23,13 @@ const App = () => {
     const [isAnimating, setIsAnimating] = useState(false);
     const [isDotAnimating, setIsDotAnimating] = useState(false);
     const [isAsymptote, setIsAsymptote] = useState(false);
-    const [angle, setAngle] = useState(0);
     const [dotAngle, setDotAngle] = useState(0);
+    const [dotPosition, setDotPosition] = useState({ x: -100, y: canvasSize / 2 });
+    const [dotDirection, setDotDirection] = useState(1);
 
     const amplitudeRef = useRef(curveSettings.amplitude);
-    const amplitudeDirectionRef = useRef(0.02);
+    const amplitudeDirectionRef = useRef(0.01);
+    const angleRef = useRef(0);
     const requestRef = useRef(null);
 
     const maxAmplitude = 3;
@@ -39,16 +41,25 @@ const App = () => {
         return { x, y };
     };
 
-    const calculateCurveDerivative = (a, angle, scale) => {
-        const dx = a * Math.pow(1 / Math.cos(angle), 2) * scale;
-        const dy = -2 * a * Math.sin(angle) * Math.cos(angle) * scale;
+    const calculateTangentAngle = (angle) => {
+        const dx = curveSettings.amplitude * Math.pow(1 / Math.cos(angle), 2) * curveSettings.scale;
+        const dy = 2 * curveSettings.amplitude * Math.sin(angle) * Math.cos(angle) * curveSettings.scale;
         const derivative = dx !== 0 ? dy / dx : 0;
-        return derivative;
+        const tangentAngle = Math.atan(derivative); // Angle of tangent
+
+        return tangentAngle - (rotationAngle * Math.PI) / 180; // Convert rotation to radians
     };
 
-    const calculateTangentAngle = (angle) => {
-        const derivative = calculateCurveDerivative(curveSettings.amplitude, angle, curveSettings.scale);
-        return Math.atan(derivative) * (180 / Math.PI);
+
+    const applyTransformations = (coordinates) => {
+        const radAngle = (rotationAngle * Math.PI) / 180;
+        return coordinates.map(([type, x, y]) => {
+            const translatedX = x - pivotX;
+            const translatedY = y - pivotY;
+            const rotatedX = translatedX * Math.cos(radAngle) - translatedY * Math.sin(radAngle);
+            const rotatedY = translatedX * Math.sin(radAngle) + translatedY * Math.cos(radAngle);
+            return [type, rotatedX + pivotX + translateX, rotatedY + pivotY + translateY];
+        });
     };
 
     const calculateParametricCurve = () => {
@@ -75,21 +86,46 @@ const App = () => {
     }, [curveSettings, canvasSize]);
 
     const animateAmplitude = () => {
-        amplitudeRef.current += amplitudeDirectionRef.current;
+        setCurveSettings((prevSettings) => {
+            let newAmplitude = amplitudeRef.current + amplitudeDirectionRef.current;
 
-        if (amplitudeRef.current >= maxAmplitude) {
-            amplitudeDirectionRef.current = -Math.abs(amplitudeDirectionRef.current);
-        } else if (amplitudeRef.current <= minAmplitude) {
-            amplitudeDirectionRef.current = Math.abs(amplitudeDirectionRef.current);
-        }
+            if (newAmplitude >= maxAmplitude || newAmplitude <= minAmplitude) {
+                amplitudeDirectionRef.current *= -1;
+            }
 
-        setCurveSettings((prev) => ({ ...prev, amplitude: amplitudeRef.current }));
+            amplitudeRef.current = newAmplitude;
+            return { ...prevSettings, amplitude: newAmplitude };
+        });
         requestRef.current = requestAnimationFrame(animateAmplitude);
     };
 
     const animateDot = () => {
-        setAngle((prevAngle) => prevAngle + 0.05);
-        setDotAngle(calculateTangentAngle(angle));
+        angleRef.current += 0.01 * dotDirection;
+        if (angleRef.current > Math.PI / 2 || angleRef.current < -Math.PI / 2) {
+            setDotDirection(dotDirection * -1);
+            angleRef.current = Math.sign(dotDirection) * Math.PI / 2;
+        }
+
+        const { x, y } = calculateCurvePoint(curveSettings.amplitude, angleRef.current, curveSettings.scale);
+        const centerX = canvasSize / 2;
+        const centerY = canvasSize / 2;
+
+        const originalX = centerX + x;
+        const originalY = centerY - y;
+
+        const radAngle = (rotationAngle * Math.PI) / 180;
+        const translatedX = originalX - pivotX;
+        const translatedY = originalY - pivotY;
+
+        const rotatedX = translatedX * Math.cos(radAngle) - translatedY * Math.sin(radAngle);
+        const rotatedY = translatedX * Math.sin(radAngle) + translatedY * Math.cos(radAngle);
+
+        const finalX = rotatedX + pivotX + translateX;
+        const finalY = canvasSize - (rotatedY + pivotY + translateY);
+
+        setDotAngle(calculateTangentAngle(angleRef.current));
+        setDotPosition({ x: finalX, y: finalY });
+
         requestRef.current = requestAnimationFrame(animateDot);
     };
 
@@ -111,32 +147,29 @@ const App = () => {
         setIsDotAnimating(!isDotAnimating);
     };
 
-    const applyTransformations = (coordinates) => {
-        const radAngle = (rotationAngle * Math.PI) / 180;
-
-        const transformedCoordinates = coordinates.map(([type, x, y]) => {
-            const translatedX = x - pivotX;
-            const translatedY = y - pivotY;
-
-            const rotatedX = translatedX * Math.cos(radAngle) - translatedY * Math.sin(radAngle);
-            const rotatedY = translatedX * Math.sin(radAngle) + translatedY * Math.cos(radAngle);
-
-            return [
-                type,
-                rotatedX + pivotX + translateX,
-                rotatedY + pivotY + translateY
-            ];
-        });
-
-        return { coordinates: transformedCoordinates };
-    };
-
     useEffect(() => {
-        return () => cancelAnimationFrame(requestRef.current);
-    }, []);
+        const { x, y } = calculateCurvePoint(curveSettings.amplitude, angleRef.current, curveSettings.scale);
+        const centerX = canvasSize / 2;
+        const centerY = canvasSize / 2;
 
-    const { coordinates: transformedCurveCoordinates } = applyTransformations(curveCoordinates);
-    const { coordinates: transformedAsymptoteCoordinates } = applyTransformations(asymptoteCoordinates);
+        const originalX = centerX + x;
+        const originalY = centerY - y;
+
+        const radAngle = (rotationAngle * Math.PI) / 180;
+        const translatedX = originalX - pivotX;
+        const translatedY = originalY - pivotY;
+
+        const rotatedX = translatedX * Math.cos(radAngle) - translatedY * Math.sin(radAngle);
+        const rotatedY = translatedX * Math.sin(radAngle) + translatedY * Math.cos(radAngle);
+
+        const finalX = rotatedX + pivotX + translateX;
+        const finalY = canvasSize - (rotatedY + pivotY + translateY);
+
+        setDotPosition({ x: finalX, y: finalY });
+    }, [curveSettings.amplitude, curveSettings.scale, rotationAngle, pivotX, pivotY, translateX, translateY]);
+
+    const transformedCurveCoordinates = applyTransformations(curveCoordinates);
+    const transformedAsymptoteCoordinates = applyTransformations(asymptoteCoordinates);
 
     return (
         <div>
@@ -160,19 +193,16 @@ const App = () => {
                 setIsAsymptote={setIsAsymptote}
                 toggleDotAnimation={toggleDotAnimation}
             />
-
             <Dot
                 canvasSize={canvasSize}
-                dotCoordinates={{ x: 15, y: 395 }}
+                dotCoordinates={dotPosition}
                 angle={dotAngle}
             />
-
             <Shape
                 coordinates={transformedCurveCoordinates}
                 asymptoteCoordinates={isAsymptote ? transformedAsymptoteCoordinates : []}
                 canvasSize={canvasSize}
             />
-
             <Graph
                 pivot={{ x: pivotX, y: pivotY }}
                 canvasSize={canvasSize}
