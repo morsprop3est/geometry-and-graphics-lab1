@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import styles from './Graph.module.scss';
 
-const Graph = ({ pivot, canvasSize }) => {
+const Graph = ({ pivot, canvasSize, lineStartX, lineEndX }) => {
     const canvasRef = useRef(null);
-    const gridSize = 20;
-    const gridDensity = 2;
+    const gridSize = 10;
+    const gridDensity = 1;
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -46,7 +46,18 @@ const Graph = ({ pivot, canvasSize }) => {
 
         ctx.strokeStyle = 'blue';
         ctx.lineWidth = 1;
-    }, [canvasSize, pivot]);
+
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.moveTo(lineStartX, 0);
+        ctx.lineTo(lineStartX, canvasSize);
+        ctx.moveTo(lineEndX, 0);
+        ctx.lineTo(lineEndX, canvasSize);
+        ctx.stroke();
+
+    }, [canvasSize, pivot, lineStartX, lineEndX]);
 
     return <canvas ref={canvasRef} width={canvasSize} height={canvasSize} className={styles.canvas} />;
 };

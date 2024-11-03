@@ -23,9 +23,20 @@ const SideMenu = ({
                       setCurveSettings,
                       toggleAnimation,
                       isAnimating,
-                      isAsymptote,
-                      setIsAsymptote,
-                      toggleDotAnimation
+                      isAsymptoteVisible,
+                      setIsAsymptoteVisible,
+                      toggleDotAnimation,
+                      curveMetrics,
+                      lineStartX,
+                      setLineStartX,
+                      lineEndX,
+                      setLineEndX,
+                      isTangentVisible,
+                      setIsTangentVisible,
+                      isNormalVisible,
+                      setIsNormalVisible,
+                      animationFrame,
+                      setAnimationFrame,
                   }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -55,7 +66,6 @@ const SideMenu = ({
                     {isOpen && (
                         <motion.div initial="closed" animate="open" exit="closed" variants={menuVariants}>
                             <h2>Settings</h2>
-
                             <div className={styles.euclideanWrapper}>
                                 <h3>Euclidean Transformations</h3>
                                 <div className={styles.controlItem}>
@@ -72,7 +82,6 @@ const SideMenu = ({
                                     <label>Pivot Y:</label>
                                     <input type="number" value={pivotY} onChange={(e) => setPivotY(Number(e.target.value))} />
                                 </div>
-
                                 <div className={styles.controlItem}>
                                     <label>Move X:</label>
                                     <input type="number" value={translateX} onChange={(e) => setTranslateX(Number(e.target.value))} />
@@ -84,39 +93,46 @@ const SideMenu = ({
                             <div className={styles.euclideanWrapper}>
                                 <h3>Versiera Curve Parameters</h3>
                                 <div className={styles.controlItem}>
-                                    <label>Amplitude:</label>
+                                    Amplitude:
                                     <input
                                         type="number"
                                         value={curveSettings.amplitude}
                                         onChange={(e) => handleCurveSettingChange('amplitude', e.target.value)}
                                     />
                                 </div>
-                                <div className={styles.controlItem}>
-                                    <label>Scale:</label>
-                                    <input
-                                        type="number"
-                                        value={curveSettings.scale}
-                                        onChange={(e) => handleCurveSettingChange('scale', e.target.value)}
-                                    />
-                                </div>
-                                <div className={styles.controlItem}>
-                                    <label>Resolution:</label>
-                                    <input
-                                        type="number"
-                                        value={curveSettings.resolution}
-                                        onChange={(e) => handleCurveSettingChange('resolution', e.target.value)}
-                                    />
-                                </div>
 
-                                <div className={styles.controlItem}>
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            checked={isAsymptote}
-                                            onChange={(e) => setIsAsymptote(e.target.checked)}
-                                        />
-                                        Show Asymptote
-                                    </label>
+                                <div className={styles.euclideanWrapper}>
+
+                                    <div className={styles.controlItem}>
+                                        Asymptote visibility:
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked={isAsymptoteVisible}
+                                                onChange={(e) => setIsAsymptoteVisible(e.target.checked)}
+                                            />
+                                        </label>
+                                    </div>
+                                    <div className={styles.controlItem}>
+                                        Tangent visibility:
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked={isTangentVisible}
+                                                onChange={(e) => setIsTangentVisible(e.target.checked)}
+                                            />
+                                        </label>
+                                    </div>
+                                    <div className={styles.controlItem}>
+                                        Normal visibility:
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked={isNormalVisible}
+                                                onChange={(e) => setIsNormalVisible(e.target.checked)}
+                                            />
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <div className={styles.controlItem}>
@@ -126,22 +142,56 @@ const SideMenu = ({
                                         whileHover={{scale: 1.1}}
                                         whileTap={{scale: 0.9}}
                                     >
-                                        {isAnimating ? 'Stop Animation' : 'Start Animation'}
+                                    Curve Animation
                                     </motion.button>
 
                                     <motion.button
                                         className={styles.resetButton}
                                         onClick={toggleDotAnimation}
-                                        whileHover={{scale: 1.1}}
-                                        whileTap={{scale: 0.9}}
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
                                     >
-                                        {isAnimating ? 'Stop Dot Animation' : 'Start Dot Animation'}
+                                        Dot Animation
                                     </motion.button>
                                 </div>
+
+                                <div className={styles.euclideanWrapper}>
+                                    <h3>Metrics</h3>
+                                    <div className={styles.controlItem}>
+                                        Arc Length: {parseFloat(curveMetrics.arcLength).toFixed(2)}
+                                    </div>
+                                    <div className={styles.controlItem}>
+                                        Area: {parseFloat(curveMetrics.area).toFixed(2)}
+                                    </div>
+                                    <div className={styles.controlItem}>
+                                        Radius of Curvature: {parseFloat(curveMetrics.radiusOfCurvature).toFixed(2)}
+                                    </div>
+
+                                    <div className={styles.controlItem}>
+                                        Lower bound:
+                                        <input
+                                            type="number"
+                                            value={lineStartX}
+                                            onChange={(e) => setLineStartX(Number(e.target.value))}
+                                            placeholder="Start X"
+                                        />
+                                    </div>
+                                    <div className={styles.controlItem}>
+                                        Upper bound:
+                                        <input
+                                            type="number"
+                                            value={lineEndX}
+                                            onChange={(e) => setLineEndX(Number(e.target.value))}
+                                            placeholder="End X"
+                                        />
+                                    </div>
+                                </div>
+
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
+
             </div>
         </div>
     );
