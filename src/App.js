@@ -2,13 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Shape from './components/Shape/Shape';
 import Graph from './components/Graph/Graph';
 import SideMenu from './components/SideMenu/SideMenu';
-import { applySymmetryTransformations } from './utils/utils';
-
-const defaultShapeElements = [
-    { id: 1, type: 'arc', startX: 27.5, startY: 65, endX: 10, endY: 0, controlX: 20, controlY: 130 },
-    { id: 2, type: 'arc', startX: 50, startY: 50, endX: 100, endY: 100, controlX: 30, controlY: 50 },
-    { id: 3, type: 'arc', startX: 120, startY: 120, endX: 150, endY: 50, controlX: 120, controlY: 90 },
-];
+import shapesData from './shapeData.json';
 
 const defaultGridSettings = {
     gridSize: 20,
@@ -18,13 +12,62 @@ const defaultGridSettings = {
 };
 
 const App = () => {
-    const [elements, setElements] = useState(defaultShapeElements);
+    const [elements, setElements] = useState(shapesData.shape1); // Start with shape1
+    const [isShape1, setIsShape1] = useState(true); // Track which shape is active
     const [gridSize, setGridSize] = useState(defaultGridSettings.gridSize);
     const [gridDensity, setGridDensity] = useState(defaultGridSettings.gridDensity);
     const [gridColor, setGridColor] = useState(defaultGridSettings.gridColor);
     const [canvasSize, setCanvasSize] = useState(defaultGridSettings.canvasSize);
     const [showPoints, setShowPoints] = useState(true);
     const [showLines, setShowLines] = useState(true);
+
+    const toggleShapeTransformation = () => {
+        const targetElements = isShape1 ? shapesData.shape2 : shapesData.shape1;
+        animateShapeTransition(elements, targetElements);
+        setIsShape1(!isShape1);
+    };
+
+    const animateShapeTransition = (startElements, endElements) => {
+        if (!Array.isArray(startElements) || !Array.isArray(endElements)) {
+            console.error('Invalid shape data: startElements or endElements is not an array');
+            return;
+        }
+
+        const steps = 60;
+        const duration = 1000;
+        const interval = duration / steps;
+        let stepCount = 0;
+
+        const interpolate = (start, end, progress) => start + (end - start) * progress;
+
+        const animate = () => {
+            stepCount++;
+            const progress = stepCount / steps;
+
+            const newElements = startElements.map((startElement, index) => {
+                const endElement = endElements[index];
+                if (!endElement) return startElement;
+
+                return {
+                    ...startElement,
+                    startX: interpolate(startElement.startX, endElement.startX, progress),
+                    startY: interpolate(startElement.startY, endElement.startY, progress),
+                    endX: interpolate(startElement.endX, endElement.endX, progress),
+                    endY: interpolate(startElement.endY, endElement.endY, progress),
+                    controlX: interpolate(startElement.controlX, endElement.controlX, progress),
+                    controlY: interpolate(startElement.controlY, endElement.controlY, progress),
+                };
+            });
+
+            setElements(newElements);
+
+            if (stepCount < steps) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        requestAnimationFrame(animate);
+    };
 
     const updateElementPosition = (id, pointType, x, y) => {
         setElements((prevElements) =>
@@ -40,7 +83,23 @@ const App = () => {
         );
     };
 
+    // Save both shape1 and shape2 data when the user clicks save
+    const saveShapeData = () => {
+        // Save both shapes, with the current one as elements
+        const jsonData = JSON.stringify({
+            shape1: elements, // This is the active shape's data
+            shape2: isShape1 ? shapesData.shape2 : shapesData.shape1, // Save the other shape
+        }, null, 2);
 
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'shapeData.json';
+        a.click();
+
+        URL.revokeObjectURL(url);
+    };
 
     return (
         <div>
@@ -57,6 +116,8 @@ const App = () => {
                 setShowLines={setShowLines}
                 showPoints={showPoints}
                 showLines={showLines}
+                toggleTransformation={toggleShapeTransformation}
+                saveShapeData={saveShapeData}
             />
             <Shape
                 elements={elements}

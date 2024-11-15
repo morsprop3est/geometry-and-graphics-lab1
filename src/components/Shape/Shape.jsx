@@ -68,7 +68,6 @@ const Shape = ({ elements, canvasSize, updateElementPosition, showPoints = true,
                 20
             );
 
-            // Малюємо дуги
             ctx.strokeStyle = 'black';
             ctx.lineWidth = 2;
             ctx.beginPath();

@@ -157,11 +157,12 @@
         align-items: center;
         gap: 5px;
         width: 100%;
+        accent-color: black;
 
         label {
           display: block;
           font-size: 0.9em;
-          width: 5rem;
+          width: 7rem;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
