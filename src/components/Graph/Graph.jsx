@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import styles from './Graph.module.scss';
 
-const Graph = ({ pivot = { x: 0, y: 0 }, gridSize = 20, gridDensity = 2, gridColor = '#cccccc', canvasSize = 800 }) => {
+const Graph = ({gridSize = 20, gridDensity = 2, gridColor = '#cccccc', canvasSize = 800 }) => {
     const canvasRef = useRef(null);
 
     const calculateGridLines = () => {
@@ -67,23 +67,11 @@ const Graph = ({ pivot = { x: 0, y: 0 }, gridSize = 20, gridDensity = 2, gridCol
             ctx.stroke();
         }
 
-        if (pivot) {
-            ctx.beginPath();
-            ctx.arc(
-                pivot.x * (gridSize / 20),
-                canvas.height - pivot.y * (gridSize / 20),
-                4,
-                0,
-                Math.PI * 2
-            );
-            ctx.fillStyle = 'blue';
-            ctx.fill();
-        }
     };
 
     useEffect(() => {
         drawGrid();
-    }, [gridSize, gridDensity, gridColor, canvasSize, pivot]);
+    }, [gridSize, gridDensity, gridColor, canvasSize]);
 
     return <canvas ref={canvasRef} width={canvasSize} height={canvasSize} className={styles.canvas} />;
 };

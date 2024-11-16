@@ -98,8 +98,6 @@
                                             onChange={(e) => setScaleX(Number(e.target.value))}
                                             step="0.1"
                                         />
-                                    </div>
-                                    <div className={styles.controlItem}>
                                         <label>ScaleY:</label>
                                         <input
                                             type="number"
@@ -114,23 +112,23 @@
                                             type="number"
                                             value={translateX}
                                             onChange={(e) => setTranslateX(Number(e.target.value))}
+                                            step="10"
                                         />
-                                    </div>
-                                    <div className={styles.controlItem}>
                                         <label>Translate Y:</label>
                                         <input
                                             type="number"
                                             value={translateY}
                                             onChange={(e) => setTranslateY(Number(e.target.value))}
+                                            step="10"
                                         />
                                     </div>
                                     <div className={styles.controlItem}>
-                                        <label>Rotate (radians):</label>
+                                        <label>Rotate:</label>
                                         <input
                                             type="number"
                                             value={rotate}
                                             onChange={(e) => setRotate(Number(e.target.value))}
-                                            step="0.01"
+                                            step="5"
                                         />
                                     </div>
                                     <div className={styles.controlItem}>
@@ -139,14 +137,14 @@
                                             type="number"
                                             value={pivotX}
                                             onChange={(e) => setPivotX(Number(e.target.value))}
+                                            step="10"
                                         />
-                                    </div>
-                                    <div className={styles.controlItem}>
                                         <label>Pivot Y:</label>
                                         <input
                                             type="number"
                                             value={pivotY}
                                             onChange={(e) => setPivotY(Number(e.target.value))}
+                                            step="10"
                                         />
                                     </div>
                                 </div>

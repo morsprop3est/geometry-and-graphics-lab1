@@ -25,8 +25,8 @@ const App = () => {
     const [translateX, setTranslateX] = useState(0);
     const [translateY, setTranslateY] = useState(0);
     const [rotate, setRotate] = useState(0);
-    const [pivotX, setPivotX] = useState(400);
-    const [pivotY, setPivotY] = useState(400);
+    const [pivotX, setPivotX] = useState(0);
+    const [pivotY, setPivotY] = useState(0);
 
     const toggleShapeTransformation = () => {
         const targetElements = isShape1 ? shapesData.shape2 : shapesData.shape1;
@@ -40,7 +40,7 @@ const App = () => {
             return;
         }
 
-        const steps = 60;
+        const steps = 120;
         let stepCount = 0;
 
         const interpolate = (start, end, progress) => start + (end - start) * progress;
@@ -168,6 +168,13 @@ const App = () => {
                 updateElementPosition={updateElementPosition}
                 showPoints={showPoints}
                 showLines={showLines}
+                scaleX={scaleX}
+                scaleY={scaleY}
+                translateX={translateX}
+                translateY={translateY}
+                rotate={rotate}
+                pivotX={pivotX}
+                pivotY={pivotY}
             />
             <Graph
                 gridSize={gridSize}
