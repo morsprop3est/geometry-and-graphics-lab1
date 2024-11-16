@@ -21,7 +21,7 @@ const Shape = ({ elements, canvasSize, updateElementPosition, showPoints = true,
                 const pointY = element[`${pointType}Y`];
                 const distance = Math.hypot(x - pointX, y - pointY);
 
-                if (distance < 15) {
+                if (distance <= 5) {
                     return { id: element.id, pointType };
                 }
             }
@@ -101,12 +101,25 @@ const Shape = ({ elements, canvasSize, updateElementPosition, showPoints = true,
                     const adjustedY = canvasSize - pointY;
 
                     ctx.beginPath();
-                    ctx.arc(pointX, adjustedY, 5, 0, Math.PI * 2);
-                    ctx.fillStyle = 'green';
-                    ctx.fill();
+                    if (pointType === 'control') {
+                        ctx.arc(pointX, adjustedY, 4, 0, Math.PI * 2);
+                        ctx.fillStyle = 'black';
+                        ctx.fill();
+
+                        ctx.beginPath();
+                        ctx.arc(pointX, adjustedY, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = '#47ce4e';
+                        ctx.fill();
+                    } else {
+                        ctx.arc(pointX, adjustedY, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = 'black';
+                        ctx.fill();
+                    }
                     ctx.closePath();
                 });
             }
+
+
         });
     }, [elements, canvasSize, showPoints, showLines]);
 

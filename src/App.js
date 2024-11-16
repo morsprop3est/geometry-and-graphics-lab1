@@ -12,14 +12,21 @@ const defaultGridSettings = {
 };
 
 const App = () => {
-    const [elements, setElements] = useState(shapesData.shape1); // Start with shape1
-    const [isShape1, setIsShape1] = useState(true); // Track which shape is active
+    const [elements, setElements] = useState(shapesData.shape1)
+    const [isShape1, setIsShape1] = useState(true);
     const [gridSize, setGridSize] = useState(defaultGridSettings.gridSize);
     const [gridDensity, setGridDensity] = useState(defaultGridSettings.gridDensity);
     const [gridColor, setGridColor] = useState(defaultGridSettings.gridColor);
     const [canvasSize, setCanvasSize] = useState(defaultGridSettings.canvasSize);
     const [showPoints, setShowPoints] = useState(true);
     const [showLines, setShowLines] = useState(true);
+    const [scaleX, setScaleX] = useState(1);
+    const [scaleY, setScaleY] = useState(1);
+    const [translateX, setTranslateX] = useState(0);
+    const [translateY, setTranslateY] = useState(0);
+    const [rotate, setRotate] = useState(0);
+    const [pivotX, setPivotX] = useState(400);
+    const [pivotY, setPivotY] = useState(400);
 
     const toggleShapeTransformation = () => {
         const targetElements = isShape1 ? shapesData.shape2 : shapesData.shape1;
@@ -34,8 +41,6 @@ const App = () => {
         }
 
         const steps = 60;
-        const duration = 1000;
-        const interval = duration / steps;
         let stepCount = 0;
 
         const interpolate = (start, end, progress) => start + (end - start) * progress;
@@ -83,12 +88,10 @@ const App = () => {
         );
     };
 
-    // Save both shape1 and shape2 data when the user clicks save
     const saveShapeData = () => {
-        // Save both shapes, with the current one as elements
         const jsonData = JSON.stringify({
-            shape1: elements, // This is the active shape's data
-            shape2: isShape1 ? shapesData.shape2 : shapesData.shape1, // Save the other shape
+            shape1: elements,
+            shape2: shapesData.shape2,
         }, null, 2);
 
         const blob = new Blob([jsonData], { type: 'application/json' });
@@ -100,6 +103,31 @@ const App = () => {
 
         URL.revokeObjectURL(url);
     };
+
+
+    const addArc = () => {
+        const newArc = {
+            id: elements.length + 1,
+            type: 'arc',
+            startX: 100,
+            startY: 100,
+            endX: 400,
+            endY: 100,
+            controlX: 200,
+            controlY: 200,
+        };
+
+        const updatedElements = [...elements, newArc];
+
+        const updatedShape2 = [
+            ...shapesData.shape2,
+            { ...newArc, id: shapesData.shape2.length + 1 },
+        ];
+
+        setElements(updatedElements);
+        shapesData.shape2 = updatedShape2;
+    };
+
 
     return (
         <div>
@@ -118,6 +146,21 @@ const App = () => {
                 showLines={showLines}
                 toggleTransformation={toggleShapeTransformation}
                 saveShapeData={saveShapeData}
+                addArc={addArc}
+                scaleX={scaleX}
+                scaleY={scaleY}
+                setScaleX={setScaleX}
+                setScaleY={setScaleY}
+                translateX={translateX}
+                setTranslateX={setTranslateX}
+                translateY={translateY}
+                setTranslateY={setTranslateY}
+                rotate={rotate}
+                setRotate={setRotate}
+                pivotX={pivotX}
+                setPivotX={setPivotX}
+                pivotY={pivotY}
+                setPivotY={setPivotY}
             />
             <Shape
                 elements={elements}

@@ -18,6 +18,14 @@
                           setShowLines,
                           toggleTransformation,
                           saveShapeData,
+                          addArc,
+                          scaleX, setScaleX,
+                          scaleY, setScaleY,
+                          translateX, setTranslateX,
+                          translateY, setTranslateY,
+                          rotate, setRotate,
+                          pivotX, setPivotX,
+                          pivotY, setPivotY,
                       }) => {
         const [isOpen, setIsOpen] = useState(false);
 
@@ -81,6 +89,69 @@
                                 </div>
 
                                 <div className={styles.gridWrapper}>
+                                    <h3>Transformation Settings</h3>
+                                    <div className={styles.controlItem}>
+                                        <label>ScaleX:</label>
+                                        <input
+                                            type="number"
+                                            value={scaleX}
+                                            onChange={(e) => setScaleX(Number(e.target.value))}
+                                            step="0.1"
+                                        />
+                                    </div>
+                                    <div className={styles.controlItem}>
+                                        <label>ScaleY:</label>
+                                        <input
+                                            type="number"
+                                            value={scaleY}
+                                            onChange={(e) => setScaleY(Number(e.target.value))}
+                                            step="0.1"
+                                        />
+                                    </div>
+                                    <div className={styles.controlItem}>
+                                        <label>Translate X:</label>
+                                        <input
+                                            type="number"
+                                            value={translateX}
+                                            onChange={(e) => setTranslateX(Number(e.target.value))}
+                                        />
+                                    </div>
+                                    <div className={styles.controlItem}>
+                                        <label>Translate Y:</label>
+                                        <input
+                                            type="number"
+                                            value={translateY}
+                                            onChange={(e) => setTranslateY(Number(e.target.value))}
+                                        />
+                                    </div>
+                                    <div className={styles.controlItem}>
+                                        <label>Rotate (radians):</label>
+                                        <input
+                                            type="number"
+                                            value={rotate}
+                                            onChange={(e) => setRotate(Number(e.target.value))}
+                                            step="0.01"
+                                        />
+                                    </div>
+                                    <div className={styles.controlItem}>
+                                        <label>Pivot X:</label>
+                                        <input
+                                            type="number"
+                                            value={pivotX}
+                                            onChange={(e) => setPivotX(Number(e.target.value))}
+                                        />
+                                    </div>
+                                    <div className={styles.controlItem}>
+                                        <label>Pivot Y:</label>
+                                        <input
+                                            type="number"
+                                            value={pivotY}
+                                            onChange={(e) => setPivotY(Number(e.target.value))}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className={styles.gridWrapper}>
                                     <h3>Visibility Settings</h3>
                                     <div className={styles.controlItem}>
                                         <label>
@@ -108,6 +179,12 @@
                                     <div className={styles.controlItem}>
                                         <button onClick={toggleTransformation} className={styles.resetButton}>
                                             Toggle Shape Transformation
+                                        </button>
+                                    </div>
+
+                                    <div className={styles.controlItem}>
+                                        <button onClick={addArc} className={styles.resetButton}>
+                                            Add arc
                                         </button>
                                     </div>
 
