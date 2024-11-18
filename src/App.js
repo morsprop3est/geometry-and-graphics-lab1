@@ -18,8 +18,8 @@ const App = () => {
     const [gridDensity, setGridDensity] = useState(defaultGridSettings.gridDensity);
     const [gridColor, setGridColor] = useState(defaultGridSettings.gridColor);
     const [canvasSize, setCanvasSize] = useState(defaultGridSettings.canvasSize);
-    const [showPoints, setShowPoints] = useState(true);
-    const [showLines, setShowLines] = useState(true);
+    const [showPoints, setShowPoints] = useState(false);
+    const [showLines, setShowLines] = useState(false);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
     const [translateX, setTranslateX] = useState(0);

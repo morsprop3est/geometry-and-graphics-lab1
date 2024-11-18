@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './Shape.module.scss';
-import { calculateArc } from '../../utils/utils';
+import { calculateArc, calculateWeightedArc  } from '../../utils/utils';
 
 const Shape = ({
                    elements,
@@ -103,14 +103,21 @@ const Shape = ({
             const transformedControl = applyTransformations(element.controlX, element.controlY);
             const transformedEnd = applyTransformations(element.endX, element.endY);
 
-            const arcPoints = calculateArc(
+            const discriminator = 0.75;
+
+            const wA = 1;
+            const wB = discriminator/(1 - discriminator);
+            const wC = 1;
+
+            const arcPoints = calculateWeightedArc(
                 transformedStart.x,
                 transformedStart.y,
                 transformedControl.x,
                 transformedControl.y,
                 transformedEnd.x,
                 transformedEnd.y,
-                20
+                20,
+                wA, wB, wC
             );
 
             ctx.strokeStyle = 'black';
@@ -172,6 +179,7 @@ const Shape = ({
         ctx.fillStyle = 'blue';
         ctx.fill();
     }, [elements, canvasSize, showPoints, showLines, scaleX, scaleY, translateX, translateY, rotate, pivotX, pivotY]);
+
 
     return (
         <canvas
