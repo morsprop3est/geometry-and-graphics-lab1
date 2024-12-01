@@ -3,32 +3,26 @@
     {
       "id": 1,
       "type": "arc",
-      "startX": 57,
-      "startY": 497,
+      "startX": 166,
+      "startY": 707,
       "controlX": 130,
-      "controlY": 664,
-      "endX": 337,
-      "endY": 741
+      "controlY": 664
     },
     {
       "id": 2,
       "type": "arc",
-      "startX": 337,
-      "startY": 741,
-      "controlX": 419,
-      "controlY": 638,
-      "endX": 283,
-      "endY": 480
+      "startX": 62,
+      "startY": 457,
+      "controlX": 210,
+      "controlY": 754
     },
     {
       "id": 3,
       "type": "arc",
-      "startX": 283,
-      "startY": 480,
-      "controlX": 130,
-      "controlY": 231,
-      "endX": 57,
-      "endY": 497
+      "startX": 618,
+      "startY": 462,
+      "controlX": 149,
+      "controlY": 673
     }
   ],
   "shape2": [
@@ -38,9 +32,7 @@
       "startX": 250,
       "startY": 500,
       "controlX": 300,
-      "controlY": 450,
-      "endX": 320,
-      "endY": 520
+      "controlY": 450
     },
     {
       "id": 2,
@@ -48,9 +40,7 @@
       "startX": 320,
       "startY": 520,
       "controlX": 280,
-      "controlY": 580,
-      "endX": 290,
-      "endY": 600
+      "controlY": 580
     },
     {
       "id": 3,
@@ -58,9 +48,7 @@
       "startX": 290,
       "startY": 600,
       "controlX": 240,
-      "controlY": 550,
-      "endX": 250,
-      "endY": 500
+      "controlY": 550
     }
   ]
 }

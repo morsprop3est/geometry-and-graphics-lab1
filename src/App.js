@@ -34,11 +34,12 @@ const App = () => {
 
             return {
                 ...element,
-                endX: element.endX ?? nextElement.startX,
-                endY: element.endY ?? nextElement.startY,
+                endX: element.endX ?? undefined,
+                endY: element.endY ?? undefined,
             };
         });
     };
+
 
 
     const toggleShapeTransformation = () => {
@@ -66,12 +67,9 @@ const App = () => {
     };
 
     const saveShapeData = () => {
-        const processedShape1 = processElements(elements);
-        const processedShape2 = processElements(shapesData.shape2);
-
         const jsonData = JSON.stringify({
-            shape1: processedShape1,
-            shape2: processedShape2,
+            shape1: elements,
+            shape2: shapesData.shape2,
         }, null, 2);
 
         const blob = new Blob([jsonData], { type: 'application/json' });
@@ -82,6 +80,7 @@ const App = () => {
         a.click();
         URL.revokeObjectURL(url);
     };
+
 
 
 
