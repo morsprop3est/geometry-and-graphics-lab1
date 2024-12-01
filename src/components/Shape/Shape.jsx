@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './Shape.module.scss';
-import { calculateArc, calculateWeightedArc  } from '../../utils/utils';
 
 const Shape = ({
                    elements,
@@ -58,6 +57,32 @@ const Shape = ({
         }
     };
 
+    const processElements = (elements) => {
+        if (elements.length === 0) return [];
+
+        return elements.map((element, index, arr) => {
+            const isLastElement = index === arr.length - 1;
+            const nextElement = isLastElement ? arr[0] : arr[index + 1];
+
+            const nodeX = element.endX ?? nextElement.startX;
+            const nodeY = element.endY ?? nextElement.startY;
+
+            const symmetricControlX = 2 * nodeX - element.controlX;
+            const symmetricControlY = 2 * nodeY - element.controlY;
+
+            return {
+                ...element,
+                endX: element.endX ?? nextElement.startX,
+                endY: element.endY ?? nextElement.startY,
+                symmetricControlX,
+                symmetricControlY,
+            };
+        });
+    };
+
+
+
+
     const handleMouseMove = (event) => {
         if (!dragging) return;
 
@@ -93,53 +118,33 @@ const Shape = ({
     useEffect(() => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
-
         if (!canvas) return;
+
+        const processedElements = processElements(elements);
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        elements.forEach((element) => {
+        processedElements.forEach((element) => {
             const transformedStart = applyTransformations(element.startX, element.startY);
             const transformedControl = applyTransformations(element.controlX, element.controlY);
             const transformedEnd = applyTransformations(element.endX, element.endY);
 
-            const discriminator = 0.75;
-
-            const wA = 1;
-            const wB = discriminator/(1 - discriminator);
-            const wC = 1;
-
-            const arcPoints = calculateWeightedArc(
-                transformedStart.x,
-                transformedStart.y,
-                transformedControl.x,
-                transformedControl.y,
-                transformedEnd.x,
-                transformedEnd.y,
-                20,
-                wA, wB, wC
-            );
-
             ctx.strokeStyle = 'black';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            arcPoints.forEach(([type, x, y], index) => {
-                const adjustedY = canvasSize - y;
-                if (type === 'line') {
-                    if (index === 0) {
-                        ctx.moveTo(x, adjustedY);
-                    } else {
-                        ctx.lineTo(x, adjustedY);
-                    }
-                }
-            });
+            ctx.moveTo(transformedStart.x, canvasSize - transformedStart.y);
+            ctx.quadraticCurveTo(
+                transformedControl.x,
+                canvasSize - transformedControl.y,
+                transformedEnd.x,
+                canvasSize - transformedEnd.y
+            );
             ctx.stroke();
 
             if (showLines) {
+                ctx.strokeStyle = 'gray';
+                ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 0.5;
-
                 ctx.moveTo(transformedStart.x, canvasSize - transformedStart.y);
                 ctx.lineTo(transformedControl.x, canvasSize - transformedControl.y);
                 ctx.lineTo(transformedEnd.x, canvasSize - transformedEnd.y);
@@ -152,23 +157,10 @@ const Shape = ({
                     const pointY = element[`${pointType}Y`];
                     const transformedPoint = applyTransformations(pointX, pointY);
 
-                    const adjustedY = canvasSize - transformedPoint.y;
-
                     ctx.beginPath();
-                    if (pointType === 'control') {
-                        ctx.arc(transformedPoint.x, adjustedY, 4, 0, Math.PI * 2);
-                        ctx.fillStyle = 'black';
-                        ctx.fill();
-
-                        ctx.beginPath();
-                        ctx.arc(transformedPoint.x, adjustedY, 3, 0, Math.PI * 2);
-                        ctx.fillStyle = '#47ce4e';
-                        ctx.fill();
-                    } else {
-                        ctx.arc(transformedPoint.x, adjustedY, 3, 0, Math.PI * 2);
-                        ctx.fillStyle = 'black';
-                        ctx.fill();
-                    }
+                    ctx.arc(transformedPoint.x, canvasSize - transformedPoint.y, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = pointType === 'control' ? 'red' : 'blue';
+                    ctx.fill();
                     ctx.closePath();
                 });
             }
@@ -176,9 +168,11 @@ const Shape = ({
 
         ctx.beginPath();
         ctx.arc(pivotX, canvasSize - pivotY, 5, 0, Math.PI * 2);
-        ctx.fillStyle = 'blue';
+        ctx.fillStyle = 'green';
         ctx.fill();
-    }, [elements, canvasSize, showPoints, showLines, scaleX, scaleY, translateX, translateY, rotate, pivotX, pivotY]);
+    }, [elements, canvasSize, showPoints, showLines, scaleX, scaleY, translateX, translateY, rotate, pivotX, pivotY, processElements]);
+
+
 
 
     return (

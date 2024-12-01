@@ -18,8 +18,8 @@ const App = () => {
     const [gridDensity, setGridDensity] = useState(defaultGridSettings.gridDensity);
     const [gridColor, setGridColor] = useState(defaultGridSettings.gridColor);
     const [canvasSize, setCanvasSize] = useState(defaultGridSettings.canvasSize);
-    const [showPoints, setShowPoints] = useState(false);
-    const [showLines, setShowLines] = useState(false);
+    const [showPoints, setShowPoints] = useState(true);
+    const [showLines, setShowLines] = useState(true);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
     const [translateX, setTranslateX] = useState(0);
@@ -28,6 +28,19 @@ const App = () => {
     const [pivotX, setPivotX] = useState(0);
     const [pivotY, setPivotY] = useState(0);
 
+    const processElements = (elements) => {
+        return elements.map((element, index, arr) => {
+            const nextElement = arr[index + 1] || arr[0];
+
+            return {
+                ...element,
+                endX: element.endX ?? nextElement.startX,
+                endY: element.endY ?? nextElement.startY,
+            };
+        });
+    };
+
+
     const toggleShapeTransformation = () => {
         const targetElements = isShape1 ? shapesData.shape2 : shapesData.shape1;
         animateShapeTransition(elements, targetElements);
@@ -35,43 +48,7 @@ const App = () => {
     };
 
     const animateShapeTransition = (startElements, endElements) => {
-        if (!Array.isArray(startElements) || !Array.isArray(endElements)) {
-            console.error('Invalid shape data: startElements or endElements is not an array');
-            return;
-        }
 
-        const steps = 120;
-        let stepCount = 0;
-
-        const interpolate = (start, end, progress) => start + (end - start) * progress;
-
-        const animate = () => {
-            stepCount++;
-            const progress = stepCount / steps;
-
-            const newElements = startElements.map((startElement, index) => {
-                const endElement = endElements[index];
-                if (!endElement) return startElement;
-
-                return {
-                    ...startElement,
-                    startX: interpolate(startElement.startX, endElement.startX, progress),
-                    startY: interpolate(startElement.startY, endElement.startY, progress),
-                    endX: interpolate(startElement.endX, endElement.endX, progress),
-                    endY: interpolate(startElement.endY, endElement.endY, progress),
-                    controlX: interpolate(startElement.controlX, endElement.controlX, progress),
-                    controlY: interpolate(startElement.controlY, endElement.controlY, progress),
-                };
-            });
-
-            setElements(newElements);
-
-            if (stepCount < steps) {
-                requestAnimationFrame(animate);
-            }
-        };
-
-        requestAnimationFrame(animate);
     };
 
     const updateElementPosition = (id, pointType, x, y) => {
@@ -89,9 +66,12 @@ const App = () => {
     };
 
     const saveShapeData = () => {
+        const processedShape1 = processElements(elements);
+        const processedShape2 = processElements(shapesData.shape2);
+
         const jsonData = JSON.stringify({
-            shape1: elements,
-            shape2: shapesData.shape2,
+            shape1: processedShape1,
+            shape2: processedShape2,
         }, null, 2);
 
         const blob = new Blob([jsonData], { type: 'application/json' });
@@ -100,9 +80,9 @@ const App = () => {
         a.href = url;
         a.download = 'shapeData.json';
         a.click();
-
         URL.revokeObjectURL(url);
     };
+
 
 
     const addArc = () => {
@@ -111,21 +91,11 @@ const App = () => {
             type: 'arc',
             startX: 100,
             startY: 100,
-            endX: 400,
-            endY: 100,
             controlX: 200,
             controlY: 200,
         };
 
-        const updatedElements = [...elements, newArc];
-
-        const updatedShape2 = [
-            ...shapesData.shape2,
-            { ...newArc, id: shapesData.shape2.length + 1 },
-        ];
-
-        setElements(updatedElements);
-        shapesData.shape2 = updatedShape2;
+        setElements((prevElements) => [...prevElements, newArc]);
     };
 
 

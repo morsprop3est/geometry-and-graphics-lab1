@@ -3,64 +3,64 @@
     {
       "id": 1,
       "type": "arc",
-      "startX": 166,
-      "startY": 707,
-      "endX": 194,
-      "endY": 618,
+      "startX": 57,
+      "startY": 497,
       "controlX": 130,
-      "controlY": 664
+      "controlY": 664,
+      "endX": 337,
+      "endY": 741
     },
     {
       "id": 2,
       "type": "arc",
-      "startX": 178,
-      "startY": 700,
-      "endX": 175,
-      "endY": 779,
-      "controlX": 210,
-      "controlY": 754
+      "startX": 337,
+      "startY": 741,
+      "controlX": 419,
+      "controlY": 638,
+      "endX": 283,
+      "endY": 480
     },
     {
       "id": 3,
       "type": "arc",
-      "startX": 194,
-      "startY": 617,
-      "endX": 178,
-      "endY": 700,
-      "controlX": 149,
-      "controlY": 673
+      "startX": 283,
+      "startY": 480,
+      "controlX": 130,
+      "controlY": 231,
+      "endX": 57,
+      "endY": 497
     }
   ],
   "shape2": [
     {
       "id": 1,
       "type": "arc",
-      "startX": 100,
-      "startY": 100,
-      "endX": 124,
-      "endY": 100,
-      "controlX": 112,
-      "controlY": 100
+      "startX": 250,
+      "startY": 500,
+      "controlX": 300,
+      "controlY": 450,
+      "endX": 320,
+      "endY": 520
     },
     {
       "id": 2,
       "type": "arc",
-      "startX": 124,
-      "startY": 100,
-      "endX": 148,
-      "endY": 100,
-      "controlX": 136,
-      "controlY": 100
+      "startX": 320,
+      "startY": 520,
+      "controlX": 280,
+      "controlY": 580,
+      "endX": 290,
+      "endY": 600
     },
     {
       "id": 3,
       "type": "arc",
-      "startX": 148,
-      "startY": 100,
-      "endX": 172,
-      "endY": 100,
-      "controlX": 160,
-      "controlY": 100
+      "startX": 290,
+      "startY": 600,
+      "controlX": 240,
+      "controlY": 550,
+      "endX": 250,
+      "endY": 500
     }
   ]
 }
