@@ -2,11 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import styles from './Shape.module.scss';
 
 const Shape = ({
-                   elements,
                    canvasSize,
-                   updateElementPosition,
-                   showPoints,
-                   showLines,
                    scaleX,
                    scaleY,
                    translateX,
@@ -15,204 +11,73 @@ const Shape = ({
                    pivotX,
                    pivotY,
                    setPivotPosition,
+                   ifsCoefficients,
+                   iterations,
                }) => {
     const canvasRef = useRef(null);
-    const [dragging, setDragging] = useState(null);
+    const [points, setPoints] = useState([]);
 
-    const pointsAreClose = (x1, y1, x2, y2, tolerance = 5) => {
-        return Math.hypot(x2 - x1, y2 - y1) <= tolerance;
-    };
+    const generateIFSPoints = (iterations, coeffs) => {
+        let x = 0;
+        let y = 0;
+        const generatedPoints = [{ x, y }];
 
-    const mergeSmoothArcs = (arcs) => {
-        const mergedArcs = [];
-        const used = new Set();
+        for (let i = 0; i < iterations; i++) {
+            const rand = Math.random();
+            let sumP = 0;
+            const chosenCoeff = coeffs.find((coeff) => {
+                sumP += coeff.p;
+                return rand <= sumP;
+            });
 
-        arcs.forEach((arc, i) => {
-            if (used.has(i)) return;
+            const newX = chosenCoeff.a * x + chosenCoeff.b * y + chosenCoeff.e;
+            const newY = chosenCoeff.c * x + chosenCoeff.d * y + chosenCoeff.f;
+            x = newX;
+            y = newY;
 
-            let currentArc = { ...arc };
-
-            for (let j = 0; j < arcs.length; j++) {
-                if (i === j || used.has(j)) continue;
-
-                const nextArc = arcs[j];
-
-                if (pointsAreClose(currentArc.endX, currentArc.endY, nextArc.startX, nextArc.startY)) {
-                    const midX = currentArc.endX;
-                    const midY = currentArc.endY;
-
-                    const symmetricControlX = 2 * midX - currentArc.controlX;
-                    const symmetricControlY = 2 * midY - currentArc.controlY;
-
-                    mergedArcs.push(currentArc);
-
-                    mergedArcs.push({
-                        ...nextArc,
-                        controlX: symmetricControlX,
-                        controlY: symmetricControlY,
-                    });
-
-                    used.add(j);
-                    return;
-                }
-            }
-
-            mergedArcs.push(currentArc);
-            used.add(i);
-        });
-
-        return mergedArcs;
-    };
-
-    const getMousePosition = (event) => {
-        const rect = canvasRef.current.getBoundingClientRect();
-        return {
-            x: event.clientX - rect.left,
-            y: canvasSize - (event.clientY - rect.top),
-        };
-    };
-
-    const checkIfDragging = (x, y) => {
-        for (const element of elements) {
-            for (const pointType of ['start', 'control', 'end']) {
-                const pointX = element[`${pointType}X`];
-                const pointY = element[`${pointType}Y`];
-                const distance = Math.hypot(x - pointX, y - pointY);
-
-                if (distance <= 5) {
-                    return { id: element.id, pointType };
-                }
-            }
+            generatedPoints.push({ x, y });
         }
 
-        const distanceToPivot = Math.hypot(x - pivotX, y - pivotY);
-        if (distanceToPivot <= 5) {
-            return { pointType: 'pivot' };
-        }
-
-        return null;
+        return generatedPoints;
     };
 
-    const handleMouseDown = (event) => {
-        const { x, y } = getMousePosition(event);
-        const dragData = checkIfDragging(x, y);
-
-        if (dragData) {
-            setDragging(dragData);
-        }
-    };
-
-    const handleMouseMove = (event) => {
-        if (!dragging) return;
-
-        const { x, y } = getMousePosition(event);
-
-        if (dragging.pointType === 'pivot') {
-            setPivotPosition(x, y);
-        } else {
-            // Reverse the transformation before updating the element's position
-            const reversedPosition = reverseTransform(x, y);
-            updateElementPosition(dragging.id, dragging.pointType, reversedPosition.x, reversedPosition.y);
-        }
-    };
-
-    const handleMouseUp = () => {
-        setDragging(null);
-    };
-
-    // Apply transformations: scaling, rotation, translation
-    const applyTransformations = (x, y) => {
-        const scaledX = x * scaleX;
-        const scaledY = y * scaleY;
-
-        const angle = rotate;
-        const rotatedX =
-            pivotX + (scaledX - pivotX) * Math.cos((angle * Math.PI) / 180) - (scaledY - pivotY) * Math.sin((angle * Math.PI) / 180);
-        const rotatedY =
-            pivotY + (scaledX - pivotX) * Math.sin((angle * Math.PI) / 180) + (scaledY - pivotY) * Math.cos((angle * Math.PI) / 180);
-
-        const translatedX = rotatedX + translateX;
-        const translatedY = rotatedY + translateY;
-
-        return { x: translatedX, y: translatedY };
-    };
-
-    // Reverse transformations: undo scaling, rotation, and translation
-    const reverseTransform = (x, y) => {
-        const translatedX = x - translateX;
-        const translatedY = y - translateY;
-
-        const angle = -rotate;
-        const rotatedX =
-            pivotX + (translatedX - pivotX) * Math.cos((angle * Math.PI) / 180) - (translatedY - pivotY) * Math.sin((angle * Math.PI) / 180);
-        const rotatedY =
-            pivotY + (translatedX - pivotX) * Math.sin((angle * Math.PI) / 180) + (translatedY - pivotY) * Math.cos((angle * Math.PI) / 180);
-
-        const scaledX = rotatedX / scaleX;
-        const scaledY = rotatedY / scaleY;
-
-        return { x: scaledX, y: scaledY };
-    };
+    useEffect(() => {
+        setPoints(generateIFSPoints(iterations, ifsCoefficients));
+    }, [canvasSize, ifsCoefficients, iterations]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
-
-        if (!canvas) return;
-
-        const smoothElements = mergeSmoothArcs(elements);
+        if (!canvas || points.length === 0) return;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        smoothElements.forEach((element) => {
-            const transformedStart = applyTransformations(element.startX, element.startY);
-            const transformedControl = applyTransformations(element.controlX, element.controlY);
-            const transformedEnd = applyTransformations(element.endX, element.endY);
-
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(transformedStart.x, canvasSize - transformedStart.y);
-            ctx.quadraticCurveTo(
-                transformedControl.x,
-                canvasSize - transformedControl.y,
-                transformedEnd.x,
-                canvasSize - transformedEnd.y
-            );
-            ctx.stroke();
-
-            if (showLines) {
-                ctx.beginPath();
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 0.5;
-                ctx.moveTo(transformedStart.x, canvasSize - transformedStart.y);
-                ctx.lineTo(transformedControl.x, canvasSize - transformedControl.y);
-                ctx.lineTo(transformedEnd.x, canvasSize - transformedEnd.y);
-                ctx.stroke();
-            }
-
-            if (showPoints) {
-                ['start', 'control', 'end'].forEach((pointType) => {
-                    const pointX = element[`${pointType}X`];
-                    const pointY = element[`${pointType}Y`];
-                    const transformedPoint = applyTransformations(pointX, pointY);
-
-                    const adjustedY = canvasSize - transformedPoint.y;
-
-                    ctx.beginPath();
-                    ctx.arc(transformedPoint.x, adjustedY, 3, 0, Math.PI * 2);
-                    ctx.fillStyle = pointType === 'control' ? 'green' : 'black';
-                    ctx.fill();
-                    ctx.closePath();
-                });
-            }
+        points.forEach((point) => {
+            const transformed = applyTransformations(point.x, point.y);
+            ctx.fillRect(transformed.x, canvasSize - transformed.y, 1, 1);
         });
 
         ctx.beginPath();
         ctx.arc(pivotX, canvasSize - pivotY, 5, 0, Math.PI * 2);
-        ctx.fillStyle = 'blue';
         ctx.fill();
-    }, [elements, canvasSize, showPoints, showLines, scaleX, scaleY, translateX, translateY, rotate, pivotX, pivotY]);
+    }, [points, canvasSize, scaleX, scaleY, translateX, translateY, rotate, pivotX, pivotY]);
+
+    const applyTransformations = (x, y) => {
+        const localX = x;
+        const localY = y ;
+
+        const scaledX = localX * scaleX * 100;
+        const scaledY = localY * scaleY * 100;
+
+        const angle = (rotate * Math.PI) / 180;
+        const rotatedX = scaledX * Math.cos(angle) - scaledY * Math.sin(angle);
+        const rotatedY = scaledX * Math.sin(angle) + scaledY * Math.cos(angle);
+
+        const finalX = rotatedX + pivotX + translateX + 600;
+        const finalY = rotatedY + pivotY + translateY - 100;
+
+        return { x: finalX, y: finalY };
+    };
 
     return (
         <canvas
@@ -220,9 +85,6 @@ const Shape = ({
             width={canvasSize}
             height={canvasSize}
             className={styles.canvas}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
         />
     );
 };

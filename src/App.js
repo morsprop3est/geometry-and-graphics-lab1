@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Shape from './components/Shape/Shape';
 import Graph from './components/Graph/Graph';
 import SideMenu from './components/SideMenu/SideMenu';
-import shapesData from './shapeData.json';
 
 const defaultGridSettings = {
     gridSize: 20,
@@ -11,13 +10,18 @@ const defaultGridSettings = {
     canvasSize: 800,
 };
 
+const defaultIFSCoefficients = [
+    { a: 0.787879, b: -0.424242, c: 0.242424, d: 0.859848, e: 1.758647, f: 1.408065, p: 0.895652 },
+    { a: -0.121212, b: 0.257576, c: 0.151515, d: 0.053030, e: -6.721654, f: 1.377236, p: 0.052174 },
+    { a: 0.181818, b: -0.136364, c: 0.090909, d: 0.181818, e: 6.086107, f: 1.568035, p: 0.052174 },
+];
+
 const App = () => {
-    const [elements, setElements] = useState(shapesData.shape1)
-    const [isShape1, setIsShape1] = useState(true);
     const [gridSize, setGridSize] = useState(defaultGridSettings.gridSize);
     const [gridDensity, setGridDensity] = useState(defaultGridSettings.gridDensity);
     const [gridColor, setGridColor] = useState(defaultGridSettings.gridColor);
     const [canvasSize, setCanvasSize] = useState(defaultGridSettings.canvasSize);
+
     const [showPoints, setShowPoints] = useState(true);
     const [showLines, setShowLines] = useState(true);
     const [scaleX, setScaleX] = useState(1);
@@ -28,106 +32,13 @@ const App = () => {
     const [pivotX, setPivotX] = useState(0);
     const [pivotY, setPivotY] = useState(0);
 
-    const toggleShapeTransformation = () => {
-        const targetElements = isShape1 ? shapesData.shape2 : shapesData.shape1;
-        animateShapeTransition(elements, targetElements);
-        setIsShape1(!isShape1);
+    const [ifsCoefficients, setIfsCoefficients] = useState(defaultIFSCoefficients);
+    const [iterations, setIterations] = useState(100000);
+
+    const setPivotPosition = (x, y) => {
+        setPivotX(x);
+        setPivotY(y);
     };
-
-    const animateShapeTransition = (startElements, endElements) => {
-        if (!Array.isArray(startElements) || !Array.isArray(endElements)) {
-            console.error('Invalid shape data: startElements or endElements is not an array');
-            return;
-        }
-
-        const steps = 120;
-        let stepCount = 0;
-
-        const interpolate = (start, end, progress) => start + (end - start) * progress;
-
-        const animate = () => {
-            stepCount++;
-            const progress = stepCount / steps;
-
-            const newElements = startElements.map((startElement, index) => {
-                const endElement = endElements[index];
-                if (!endElement) return startElement;
-
-                return {
-                    ...startElement,
-                    startX: interpolate(startElement.startX, endElement.startX, progress),
-                    startY: interpolate(startElement.startY, endElement.startY, progress),
-                    endX: interpolate(startElement.endX, endElement.endX, progress),
-                    endY: interpolate(startElement.endY, endElement.endY, progress),
-                    controlX: interpolate(startElement.controlX, endElement.controlX, progress),
-                    controlY: interpolate(startElement.controlY, endElement.controlY, progress),
-                };
-            });
-
-            setElements(newElements);
-
-            if (stepCount < steps) {
-                requestAnimationFrame(animate);
-            }
-        };
-
-        requestAnimationFrame(animate);
-    };
-
-    const updateElementPosition = (id, pointType, x, y) => {
-        setElements((prevElements) =>
-            prevElements.map((element) =>
-                element.id === id
-                    ? {
-                        ...element,
-                        [`${pointType}X`]: x,
-                        [`${pointType}Y`]: y,
-                    }
-                    : element
-            )
-        );
-    };
-
-    const saveShapeData = () => {
-        const jsonData = JSON.stringify({
-            shape1: elements,
-            shape2: shapesData.shape2,
-        }, null, 2);
-
-        const blob = new Blob([jsonData], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'shapeData.json';
-        a.click();
-
-        URL.revokeObjectURL(url);
-    };
-
-
-    const addArc = () => {
-        const newArc = {
-            id: elements.length + 1,
-            type: 'arc',
-            startX: 100,
-            startY: 100,
-            endX: 400,
-            endY: 100,
-            controlX: 200,
-            controlY: 200,
-        };
-
-        const updatedElements = [...elements, newArc];
-
-        const updatedShape2 = [
-            ...shapesData.shape2,
-            { ...newArc, id: shapesData.shape2.length + 1 },
-        ];
-
-        setElements(updatedElements);
-        shapesData.shape2 = updatedShape2;
-    };
-
 
     return (
         <div>
@@ -144,12 +55,9 @@ const App = () => {
                 setShowLines={setShowLines}
                 showPoints={showPoints}
                 showLines={showLines}
-                toggleTransformation={toggleShapeTransformation}
-                saveShapeData={saveShapeData}
-                addArc={addArc}
                 scaleX={scaleX}
-                scaleY={scaleY}
                 setScaleX={setScaleX}
+                scaleY={scaleY}
                 setScaleY={setScaleY}
                 translateX={translateX}
                 setTranslateX={setTranslateX}
@@ -161,13 +69,13 @@ const App = () => {
                 setPivotX={setPivotX}
                 pivotY={pivotY}
                 setPivotY={setPivotY}
+                ifsCoefficients={ifsCoefficients}
+                setIfsCoefficients={setIfsCoefficients}
+                iterations={iterations}
+                setIterations={setIterations}
             />
             <Shape
-                elements={elements}
                 canvasSize={canvasSize}
-                updateElementPosition={updateElementPosition}
-                showPoints={showPoints}
-                showLines={showLines}
                 scaleX={scaleX}
                 scaleY={scaleY}
                 translateX={translateX}
@@ -175,6 +83,9 @@ const App = () => {
                 rotate={rotate}
                 pivotX={pivotX}
                 pivotY={pivotY}
+                setPivotPosition={setPivotPosition}
+                ifsCoefficients={ifsCoefficients}
+                iterations={iterations}
             />
             <Graph
                 gridSize={gridSize}
