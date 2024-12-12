@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './Shape.module.scss';
+import { calculateWeightedArc } from '../../utils/utils';
 
 const Shape = ({
                    elements,
@@ -166,16 +167,22 @@ const Shape = ({
             const transformedControl = applyTransformations(element.controlX, element.controlY);
             const transformedEnd = applyTransformations(element.endX, element.endY);
 
+            const arcPoints = calculateWeightedArc(
+                transformedStart.x, canvasSize - transformedStart.y,
+                transformedControl.x, canvasSize - transformedControl.y,
+                transformedEnd.x, canvasSize - transformedEnd.y,
+                100, 1, 1, 1
+            );
+
             ctx.strokeStyle = 'black';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(transformedStart.x, canvasSize - transformedStart.y);
-            ctx.quadraticCurveTo(
-                transformedControl.x,
-                canvasSize - transformedControl.y,
-                transformedEnd.x,
-                canvasSize - transformedEnd.y
-            );
+            ctx.moveTo(arcPoints[0][1], arcPoints[0][2]);
+
+            for (let i = 1; i < arcPoints.length; i++) {
+                ctx.lineTo(arcPoints[i][1], arcPoints[i][2]);
+            }
+
             ctx.stroke();
 
             if (showLines) {
