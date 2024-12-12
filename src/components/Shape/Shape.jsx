@@ -110,7 +110,6 @@ const Shape = ({
         if (dragging.pointType === 'pivot') {
             setPivotPosition(x, y);
         } else {
-            // Reverse the transformation before updating the element's position
             const reversedPosition = reverseTransform(x, y);
             updateElementPosition(dragging.id, dragging.pointType, reversedPosition.x, reversedPosition.y);
         }
@@ -120,7 +119,6 @@ const Shape = ({
         setDragging(null);
     };
 
-    // Apply transformations: scaling, rotation, translation
     const applyTransformations = (x, y) => {
         const scaledX = x * scaleX;
         const scaledY = y * scaleY;
@@ -137,7 +135,6 @@ const Shape = ({
         return { x: translatedX, y: translatedY };
     };
 
-    // Reverse transformations: undo scaling, rotation, and translation
     const reverseTransform = (x, y) => {
         const translatedX = x - translateX;
         const translatedY = y - translateY;
