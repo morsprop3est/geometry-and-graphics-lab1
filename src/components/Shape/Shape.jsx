@@ -94,12 +94,26 @@ const Shape = ({
         return null;
     };
 
+    const findNearbyPoints = (x, y) => {
+        const nearbyPoints = [];
+        for (const element of elements) {
+            for (const pointType of ['start', 'control', 'end']) {
+                const pointX = element[`${pointType}X`];
+                const pointY = element[`${pointType}Y`];
+                if (pointsAreClose(x, y, pointX, pointY)) {
+                    nearbyPoints.push({ id: element.id, pointType });
+                }
+            }
+        }
+        return nearbyPoints;
+    };
+
     const handleMouseDown = (event) => {
         const { x, y } = getMousePosition(event);
         const dragData = checkIfDragging(x, y);
 
         if (dragData) {
-            setDragging(dragData);
+            setDragging({ ...dragData, nearbyPoints: findNearbyPoints(x, y) });
         }
     };
 
@@ -112,7 +126,14 @@ const Shape = ({
             setPivotPosition(x, y);
         } else {
             const reversedPosition = reverseTransform(x, y);
+
             updateElementPosition(dragging.id, dragging.pointType, reversedPosition.x, reversedPosition.y);
+
+            dragging.nearbyPoints.forEach(({ id, pointType }) => {
+                if (id !== dragging.id || pointType !== dragging.pointType) {
+                    updateElementPosition(id, pointType, reversedPosition.x, reversedPosition.y);
+                }
+            });
         }
     };
 
